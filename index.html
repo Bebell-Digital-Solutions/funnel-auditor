@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auditoría de Embudo de Ventas</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+    
+    
+    
+    
+    
+        :root {
+            --primary: #df1783;
+            --secondary: #8c318f;
+            --accent: rgba(255,255,255,0.2);
+            --light: #f8f9fa;
+            --dark: #212529;
+        }
+        
+        
+        
+        
+        
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: 100vh;
+            background-color: #f5f7fa;
+        }
+        
+        
+        
+        
+        
+        .sidebar {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 20px;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            position: relative;
+            
+        }
+        
+        
+        
+        
+        
+        .logo {
+            width: 180px;
+            height: 180px;
+            margin: 0 auto 20px;
+            display: block;
+            background-color: transparent;
+            border-radius: 10px;
+            padding: 10px;
+            object-fit: contain;
+            
+        }
+        
+        
+        
+        
+        .main-content {
+            padding: 30px;
+            overflow-y: auto;
+        }
+        
+        
+        
+        
+        .nav-item {
+            padding: 12px 15px;
+            margin: 5px 0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        
+        
+        
+        .nav-item:hover {
+            background-color: var(--accent);
+        }
+        
+        
+        
+        
+        
+        .nav-item.active {
+            background-color: var(--accent);
+            font-weight: bold;
+        }
+        
+        
+        
+        
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        
+        
+        
+        
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        
+        th {
+            background-color: var(--light);
+            font-weight: 600;
+        }
+        
+        
+        
+        
+        
+        input, select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        
+        
+        
+        
+        
+        
+        
+        .chart-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .chart-box {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        
+        
+        
+        
+        .benchmark-result {
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        
+        
+        
+        
+     .btn {
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.3s;
+    margin: 5px 0; /* Changed to vertical margin only */
+    width: 100%; /* Makes button full width */
+    display: block; /* Ensures width:100% works properly */
+    box-sizing: border-box; /* Includes padding in width calculation */
+}
+        
+        
+        
+        
+        .btn:hover {
+            background-color: var(--secondary);
+        }
+        
+        
+        
+        
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+        
+        
+        
+        
+        
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        
+        
+        
+        
+        .recommendation-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid var(--primary);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 0 4px 4px 0;
+        }
+        
+        
+        
+        
+        .industry-selector {
+            margin-bottom: 20px;
+            margin-top: 15px;
+            padding: 0 auto;
+        }
+        
+        
+        
+        
+        
+        .save-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            display: none;
+            z-index: 1000;
+        }
+        
+        
+        
+  .section-footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid #e0e0e0;
+    text-align: center;
+    color: #666;
+    font-size: 10px;
+    line-height: 1;
+}
+
+.section-footer strong {
+    color: var(--primary); /* Uses your existing pink color */
+}
+
+.section-footer p {
+    margin: 5px 0;
+}      
+        
+        
+        
+        
+        
+        
+        
+    </style>
+</head>
+<body>
+
+
+
+
+
+
+    <!-- Menú Lateral -->
+    <div class="sidebar">
+        
+        
+        
+        <img src="https://bucket.mlcdn.com/a/3336/3336910/images/bcd2f769c72e6120f01d3a64a7dca2c744059d66.png" alt="Logo" class="logo">
+        
+        
+        
+        
+        
+        
+        
+        <div class="nav-menu">
+            <div class="nav-item active" onclick="showSection('dashboard')">📊 Empieza Aquí</div>
+            <div class="nav-item" onclick="showSection('definiciones')">📚 Definiciones</div>
+            <div class="nav-item" onclick="showSection('diagnostico')">🔍 Diagnóstico</div>
+            <div class="nav-item" onclick="showSection('benchmarks')">🏆 Benchmarks</div>
+            <div class="nav-item" onclick="showSection('recomendaciones')">🚀 Recomendaciones</div>
+        </div>
+        <div style="position: absolute; bottom: 20px; left: 20px; right: 20px;">
+            <button class="btn" onclick="saveData()">💾 Guardar Datos</button>
+            <button class="btn btn-secondary" onclick="loadData()">📂 Datos Guardados</button>
+        </div>
+    </div>
+    
+    
+    
+    
+    
+
+    <!-- Contenido Principal -->
+    <div class="main-content">
+        <!-- Sección Dashboard -->
+        <div id="dashboard" class="section">
+            <h1>Auditoría de Embudo de Ventas</h1>
+            
+            
+            
+            
+            
+            
+            <div class="card">
+                <h2>📊 Ingresa tus datos</h2>
+
+                <div class="industry-selector">
+                    <label for="industry">Selecciona tu industria:                  </label>
+                    
+                    
+                    <select id="industry" onchange="compareBenchmarks()">
+    <option value="">-- Seleccionar --</option>
+    
+    
+    
+    <option value="tratamiento_adicciones">Tratamiento de Adicciones</option>
+    <option value="aeroespacial_aviacion">Aeroespacial y Aviación</option>
+    <option value="automotriz">Automotriz</option>
+    <option value="saas_b2b">B2B SaaS</option>
+    <option value="biotecnologia">Biotecnología</option>
+    <option value="seguros_empresariales">Seguros Empresariales</option>
+    <option value="construccion">Construcción</option>
+    <option value="ciberseguridad">Ciberseguridad</option>
+    <option value="comercio_electronico">eCommerce</option>
+    <option value="ingenieria">Ingeniería</option>
+    <option value="entretenimiento">Entretenimiento</option>
+    <option value="servicios_ambientales">Servicios Ambientales</option>
+    <option value="servicios_financieros">Servicios Financieros</option>
+    <option value="fintech">Fintech</option>
+    <option value="salud">Salud</option>
+    <option value="maquinaria_pesada">Maquinaria Pesada</option>
+    <option value="educacion_superior">Educación Superior</option>
+    <option value="hoteles_resorts">Hoteles y Resorts</option>
+    <option value="climatizacion">Climatización (HVAC)</option>
+    <option value="iot_industrial">IoT Industrial</option>
+    <option value="servicios_tecnologicos">Servicios Tecnológicos</option>
+    <option value="servicios_legales">Servicios Legales</option>
+    <option value="manufactura">Manufactura</option>
+    <option value="petroleo_gas">Petróleo y Gas</option>
+    <option value="farmaceutica">Farmacéutica</option>
+    <option value="bienes_raices">Bienes Raíces</option>
+    <option value="desarrollo_software">Desarrollo de Software</option>
+    <option value="energia_solar">Energía Solar</option>
+    <option value="reclutamiento">Reclutamiento</option>
+    <option value="transporte_logistica">Transporte y Logística</option>
+</select>
+                </div>
+                <table id="funnel-table">
+                    <thead>
+                        <tr>
+                            <th>Etapa</th>
+                            <th># Prospectos (últimos 30 días)</th>
+                            <th>Tasa Conversión</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Leads</td>
+                            <td><input type="number" id="leads" placeholder="Ej: 1500" onchange="calculateFunnel()"></td>
+                            <td id="leads-conv">-</td>
+                        </tr>
+                        <tr>
+                            <td>MQLs</td>
+                            <td><input type="number" id="mqls" placeholder="Ej: 300" onchange="calculateFunnel()"></td>
+                            <td id="mqls-conv">-</td>
+                        </tr>
+                        <tr>
+                            <td>SQLs</td>
+                            <td><input type="number" id="sqls" placeholder="Ej: 90" onchange="calculateFunnel()"></td>
+                            <td id="sqls-conv">-</td>
+                        </tr>
+                        <tr>
+                            <td>Oportunidades</td>
+                            <td><input type="number" id="opps" placeholder="Ej: 36" onchange="calculateFunnel()"></td>
+                            <td id="opps-conv">-</td>
+                        </tr>
+                        <tr>
+                            <td>Ventas Cerradas</td>
+                            <td><input type="number" id="sales" placeholder="Ej: 14" onchange="calculateFunnel()"></td>
+                            <td id="sales-conv">-</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <button class="btn" onclick="generatePDF()">📄 Generar Reporte PDF</button>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-box">
+                    <canvas id="conversionChart"></canvas>
+                </div>
+                <div class="chart-box">
+                    <canvas id="stageChart"></canvas>
+                </div>
+            </div>
+            
+      
+        </div>
+
+
+
+
+
+
+
+
+
+        <!-- Sección Definiciones -->
+        <div id="definiciones" class="section" style="display:none;">
+            <h1>Definiciones del Embudo</h1>
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Etapa</th>
+                            <th>Definición</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Lead</strong></td>
+                            <td>Contacto no spam que ha completado un formulario, solicitado una demo, descargado una prueba gratuita o interactuado con marketing, pero sin intención clara de compra.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>MQL (Lead Calificado por Marketing)</strong></td>
+                            <td>Lead que muestra interés de compra y capacidad financiera, pero aún no ha sido validado por ventas.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>SQL (Lead Calificado por Ventas)</strong></td>
+                            <td>MQL que ha recibido información de precios y quiere avanzar en el proceso.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Oportunidad</strong></td>
+                            <td>SQL con una propuesta formal o contrato en revisión activa.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Closed Won (Venta Cerrada)</strong></td>
+                            <td>Cliente que ha firmado un contrato pero aún no ha realizado el primer pago.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            
+       
+            
+        </div>
+        
+        
+        
+        
+        
+        
+        
+        
+
+        <!-- Sección Diagnóstico -->
+        <div id="diagnostico" class="section" style="display:none;">
+            <h1>Diagnóstico de Rendimiento</h1>
+            <div class="card">
+                <h2>Comparación con Benchmarks</h2>
+                <div id="benchmark-comparison">
+                    <p>Selecciona una industria y completa tus datos para ver el análisis comparativo.</p>
+                </div>
+            </div>
+            <div class="card">
+                <h2>Puntos Críticos</h2>
+                <div id="critical-points">
+                    <!-- Se llena dinámicamente -->
+                </div>
+            </div>
+            
+
+        
+        </div>
+        
+        
+        
+        
+        
+        
+        
+        
+
+        <!-- Sección Benchmarks -->
+        <div id="benchmarks" class="section" style="display:none;">
+            <h1>Benchmarks por Industria</h1>
+ <p>Según reportes y estudios realizados en el periodo  2017-2024</p>
+            <div class="card">
+                <table>
+    <thead>
+        <tr>
+            <th>Industria</th>
+            <th>Lead → MQL</th>
+            <th>MQL → SQL</th>
+            <th>SQL → Oportunidad</th>
+            <th>SQL → Cerrado</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Tratamiento de Adicciones</td>
+            <td>23%</td>
+            <td>39%</td>
+            <td>45%</td>
+            <td>48%</td>
+        </tr>
+        <tr>
+            <td>Aeroespacial y Aviación</td>
+            <td>18%</td>
+            <td>32%</td>
+            <td>49%</td>
+            <td>61%</td>
+        </tr>
+        <tr>
+            <td>Automotriz</td>
+            <td>21%</td>
+            <td>42%</td>
+            <td>46%</td>
+            <td>49%</td>
+        </tr>
+        <tr>
+            <td>B2B SaaS</td>
+            <td>39%</td>
+            <td>38%</td>
+            <td>42%</td>
+            <td>37%</td>
+        </tr>
+        <tr>
+            <td>Biotecnología</td>
+            <td>36%</td>
+            <td>40%</td>
+            <td>48%</td>
+            <td>55%</td>
+        </tr>
+        <tr>
+            <td>Seguros Empresariales</td>
+            <td>23%</td>
+            <td>51%</td>
+            <td>49%</td>
+            <td>52%</td>
+        </tr>
+        <tr>
+            <td>Construcción</td>
+            <td>17%</td>
+            <td>37%</td>
+            <td>50%</td>
+            <td>54%</td>
+        </tr>
+        <tr>
+            <td>Ciberseguridad</td>
+            <td>24%</td>
+            <td>40%</td>
+            <td>43%</td>
+            <td>46%</td>
+        </tr>
+        <tr>
+            <td>eCommerce</td>
+            <td>23%</td>
+            <td>58%</td>
+            <td>66%</td>
+            <td>60%</td>
+        </tr>
+        <tr>
+            <td>Ingeniería</td>
+            <td>27%</td>
+            <td>36%</td>
+            <td>48%</td>
+            <td>52%</td>
+        </tr>
+        <tr>
+            <td>Entretenimiento</td>
+            <td>19%</td>
+            <td>41%</td>
+            <td>54%</td>
+            <td>61%</td>
+        </tr>
+        <tr>
+            <td>Servicios Ambientales</td>
+            <td>20%</td>
+            <td>43%</td>
+            <td>58%</td>
+            <td>54%</td>
+        </tr>
+        <tr>
+            <td>Servicios Financieros</td>
+            <td>29%</td>
+            <td>38%</td>
+            <td>49%</td>
+            <td>53%</td>
+        </tr>
+        <tr>
+            <td>Fintech</td>
+            <td>21%</td>
+            <td>46%</td>
+            <td>49%</td>
+            <td>58%</td>
+        </tr>
+        <tr>
+            <td>Salud</td>
+            <td>24%</td>
+            <td>38%</td>
+            <td>51%</td>
+            <td>51%</td>
+        </tr>
+        <tr>
+            <td>Maquinaria Pesada</td>
+            <td>29%</td>
+            <td>48%</td>
+            <td>58%</td>
+            <td>56%</td>
+        </tr>
+        <tr>
+            <td>Educación Superior</td>
+            <td>45%</td>
+            <td>46%</td>
+            <td>61%</td>
+            <td>66%</td>
+        </tr>
+        <tr>
+            <td>Hoteles y Resorts</td>
+            <td>21%</td>
+            <td>47%</td>
+            <td>58%</td>
+            <td>60%</td>
+        </tr>
+        <tr>
+            <td>Climatización (HVAC)</td>
+            <td>42%</td>
+            <td>51%</td>
+            <td>55%</td>
+            <td>49%</td>
+        </tr>
+        <tr>
+            <td>IoT Industrial</td>
+            <td>22%</td>
+            <td>39%</td>
+            <td>46%</td>
+            <td>51%</td>
+        </tr>
+        <tr>
+            <td>Servicios Tecnológicos</td>
+            <td>19%</td>
+            <td>38%</td>
+            <td>41%</td>
+            <td>46%</td>
+        </tr>
+        <tr>
+            <td>Servicios Legales</td>
+            <td>32%</td>
+            <td>35%</td>
+            <td>48%</td>
+            <td>46%</td>
+        </tr>
+        <tr>
+            <td>Manufactura</td>
+            <td>26%</td>
+            <td>41%</td>
+            <td>46%</td>
+            <td>51%</td>
+        </tr>
+        <tr>
+            <td>Petróleo y Gas</td>
+            <td>32%</td>
+            <td>38%</td>
+            <td>42%</td>
+            <td>47%</td>
+        </tr>
+        <tr>
+            <td>Farmacéutica</td>
+            <td>41%</td>
+            <td>56%</td>
+            <td>51%</td>
+            <td>64%</td>
+        </tr>
+        <tr>
+            <td>Bienes Raíces</td>
+            <td>27%</td>
+            <td>33%</td>
+            <td>40%</td>
+            <td>53%</td>
+        </tr>
+        <tr>
+            <td>Desarrollo de Software</td>
+            <td>28%</td>
+            <td>39%</td>
+            <td>60%</td>
+            <td>59%</td>
+        </tr>
+        <tr>
+            <td>Energía Solar</td>
+            <td>45%</td>
+            <td>36%</td>
+            <td>58%</td>
+            <td>61%</td>
+        </tr>
+        <tr>
+            <td>Reclutamiento</td>
+            <td>25%</td>
+            <td>32%</td>
+            <td>45%</td>
+            <td>52%</td>
+        </tr>
+        <tr>
+            <td>Transporte y Logística</td>
+            <td>31%</td>
+            <td>44%</td>
+            <td>49%</td>
+            <td>56%</td>
+        </tr>
+    </tbody>
+</table>
+            </div>
+            
+
+        </div>
+        
+        
+        
+
+
+        <!-- Sección Recomendaciones -->
+        <div id="recomendaciones" class="section" style="display:none;">
+            <h1>Recomendaciones Personalizadas</h1>
+            <div class="card">
+                <div id="stage-recommendations">
+                    <h2>Selecciona una industria e ingresa tus datos para obtener recomendaciones personalizadas.</h2>
+                </div>
+            </div>
+        </div>
+
+
+
+
+
+            <div class="section-footer">
+    <p>Powered with 💖 by <strong>Bebell Digital Solutions</strong></p>
+    <p>Copyright © 2025 • All rights reserved</p>
+</div>
+        
+        
+    </div>
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <div class="save-notification" id="saveNotification">
+        Datos guardados correctamente!
+    </div>
+    
+    
+    
+    
+
+    <script>
+        // Variables globales
+        let conversionChart, stageChart;
+        const { jsPDF } = window.jspdf;
+
+        // Benchmarks por industria
+        const industryBenchmarks = {
+     tratamiento_adicciones: { lead_mql: 23, mql_sql: 39, sql_opp: 45, sql_closed: 48 },
+    aeroespacial_aviacion: { lead_mql: 18, mql_sql: 32, sql_opp: 49, sql_closed: 61 },
+    automotriz: { lead_mql: 21, mql_sql: 42, sql_opp: 46, sql_closed: 49 },
+    saas_b2b: { lead_mql: 39, mql_sql: 38, sql_opp: 42, sql_closed: 37 },
+    biotecnologia: { lead_mql: 36, mql_sql: 40, sql_opp: 48, sql_closed: 55 },
+    seguros_empresariales: { lead_mql: 23, mql_sql: 51, sql_opp: 49, sql_closed: 52 },
+    construccion: { lead_mql: 17, mql_sql: 37, sql_opp: 50, sql_closed: 54 },
+    ciberseguridad: { lead_mql: 24, mql_sql: 40, sql_opp: 43, sql_closed: 46 },
+    comercio_electronico: { lead_mql: 23, mql_sql: 58, sql_opp: 66, sql_closed: 60 },
+    ingenieria: { lead_mql: 27, mql_sql: 36, sql_opp: 48, sql_closed: 52 },
+    entretenimiento: { lead_mql: 19, mql_sql: 41, sql_opp: 54, sql_closed: 61 },
+    servicios_ambientales: { lead_mql: 20, mql_sql: 43, sql_opp: 58, sql_closed: 54 },
+    servicios_financieros: { lead_mql: 29, mql_sql: 38, sql_opp: 49, sql_closed: 53 },
+    fintech: { lead_mql: 21, mql_sql: 46, sql_opp: 49, sql_closed: 58 },
+    salud: { lead_mql: 24, mql_sql: 38, sql_opp: 51, sql_closed: 51 },
+    maquinaria_pesada: { lead_mql: 29, mql_sql: 48, sql_opp: 58, sql_closed: 56 },
+    educacion_superior: { lead_mql: 45, mql_sql: 46, sql_opp: 61, sql_closed: 66 },
+    hoteles_resorts: { lead_mql: 21, mql_sql: 47, sql_opp: 58, sql_closed: 60 },
+    climatizacion: { lead_mql: 42, mql_sql: 51, sql_opp: 55, sql_closed: 49 }, // HVAC
+    iot_industrial: { lead_mql: 22, mql_sql: 39, sql_opp: 46, sql_closed: 51 },
+    servicios_tecnologicos: { lead_mql: 19, mql_sql: 38, sql_opp: 41, sql_closed: 46 }, // IT & Managed Services
+    servicios_legales: { lead_mql: 32, mql_sql: 35, sql_opp: 48, sql_closed: 46 },
+    manufactura: { lead_mql: 26, mql_sql: 41, sql_opp: 46, sql_closed: 51 },
+    petroleo_gas: { lead_mql: 32, mql_sql: 38, sql_opp: 42, sql_closed: 47 },
+    farmaceutica: { lead_mql: 41, mql_sql: 56, sql_opp: 51, sql_closed: 64 },
+    bienes_raices: { lead_mql: 27, mql_sql: 33, sql_opp: 40, sql_closed: 53 },
+    desarrollo_software: { lead_mql: 28, mql_sql: 39, sql_opp: 60, sql_closed: 59 },
+    energia_solar: { lead_mql: 45, mql_sql: 36, sql_opp: 58, sql_closed: 61 },
+    reclutamiento: { lead_mql: 25, mql_sql: 32, sql_opp: 45, sql_closed: 52 }, // Staffing & Recruiting
+    transporte_logistica: { lead_mql: 31, mql_sql: 44, sql_opp: 49, sql_closed: 56 }
+};
+
+
+
+
+
+
+
+
+        // Recomendaciones por rango de conversión
+        const recommendations = {
+            lead_mql: [
+                { range: [0, 10], text: "Implementa programas de lead nurturing con email marketing automatizado y contenido educativo." },
+                { range: [11, 20], text: "Optimiza tus formularios de captación y añade preguntas de calificación." },
+                { range: [21, 35], text: "Mejora tu targeting de anuncios y contenido para atraer leads más cualificados." },
+                { range: [36, 100], text: "Excelente tasa de conversión. Considera aumentar el volumen de leads." }
+            ],
+            mql_sql: [
+                { range: [0, 20], text: "Revisa tu proceso de calificación de MQLs y alinea mejor marketing con ventas." },
+                { range: [21, 35], text: "Implementa puntuación de leads (lead scoring) para priorizar los más calificados." },
+                { range: [36, 50], text: "Proporciona más información clara sobre precios y beneficios desde el principio." },
+                { range: [51, 100], text: "Tasa excepcional. Enfócate en mantener la calidad de los MQLs." }
+            ],
+            sql_opp: [
+                { range: [0, 30], text: "Capacita a tu equipo de ventas en técnicas de descubrimiento de necesidades." },
+                { range: [31, 45], text: "Desarrolla casos de éxito y testimonios para mostrar valor." },
+                { range: [46, 60], text: "Optimiza tus propuestas comerciales para que sean más persuasivas." },
+                { range: [61, 100], text: "Proceso de ventas muy efectivo. Identifica qué está funcionando bien." }
+            ],
+            sql_closed: [
+                { range: [0, 30], text: "Implementa descuentos por tiempo limitado o garantías de satisfacción." },
+                { range: [31, 50], text: "Mejora tu proceso de seguimiento post-propuesta con recordatorios estratégicos." },
+                { range: [51, 65], text: "Analiza objeciones comunes y desarrolla respuestas efectivas." },
+                { range: [66, 100], text: "Tasa de cierre excelente. Considera aumentar el volumen de oportunidades." }
+            ]
+        };
+
+        // Mostrar sección seleccionada
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(section => {
+                section.style.display = 'none';
+            });
+            document.getElementById(sectionId).style.display = 'block';
+            
+            // Actualizar navegación activa
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+
+            // Actualizar contenido dinámico si es necesario
+            if (sectionId === 'diagnostico') {
+                compareBenchmarks();
+            } else if (sectionId === 'recomendaciones') {
+                generateRecommendations();
+            }
+        }
+
+        // Calcular embudo
+        function calculateFunnel() {
+            const leads = parseInt(document.getElementById('leads').value) || 0;
+            const mqls = parseInt(document.getElementById('mqls').value) || 0;
+            const sqls = parseInt(document.getElementById('sqls').value) || 0;
+            const opps = parseInt(document.getElementById('opps').value) || 0;
+            const sales = parseInt(document.getElementById('sales').value) || 0;
+
+            // Calcular tasas
+            const leadToMql = leads > 0 ? (mqls/leads)*100 : 0;
+            const mqlToSql = mqls > 0 ? (sqls/mqls)*100 : 0;
+            const sqlToOpp = sqls > 0 ? (opps/sqls)*100 : 0;
+            const oppToSale = opps > 0 ? (sales/opps)*100 : 0;
+
+            document.getElementById('mqls-conv').textContent = leads > 0 ? leadToMql.toFixed(1)+'%' : '-';
+            document.getElementById('sqls-conv').textContent = mqls > 0 ? mqlToSql.toFixed(1)+'%' : '-';
+            document.getElementById('opps-conv').textContent = sqls > 0 ? sqlToOpp.toFixed(1)+'%' : '-';
+            document.getElementById('sales-conv').textContent = opps > 0 ? oppToSale.toFixed(1)+'%' : '-';
+
+            // Actualizar gráficos
+            updateCharts(leads, mqls, sqls, opps, sales);
+            
+            // Actualizar comparación con benchmarks si está en esa sección
+            if (document.getElementById('diagnostico').style.display === 'block') {
+                compareBenchmarks();
+            }
+            
+            // Actualizar recomendaciones si está en esa sección
+            if (document.getElementById('recomendaciones').style.display === 'block') {
+                generateRecommendations();
+            }
+        }
+
+        // Actualizar gráficos
+        function updateCharts(leads, mqls, sqls, opps, sales) {
+            // Datos para gráfico de conversión
+            const conversionData = {
+                labels: ['Lead → MQL', 'MQL → SQL', 'SQL → Opp', 'Opp → Venta'],
+                datasets: [{
+                    data: [
+                        leads > 0 ? (mqls/leads)*100 : 0,
+                        mqls > 0 ? (sqls/mqls)*100 : 0,
+                        sqls > 0 ? (opps/sqls)*100 : 0,
+                        opps > 0 ? (sales/opps)*100 : 0
+                    ],
+                    backgroundColor: [
+                        '#df1783',
+                        '#8c318f',
+                        '#4361ee',
+                        '#4895ef'
+                    ],
+                    borderWidth: 1
+                }]
+            };
+
+            // Datos para gráfico por etapas
+            const stageData = {
+                labels: ['Leads', 'MQLs', 'SQLs', 'Oportunidades', 'Ventas'],
+                datasets: [{
+                    data: [leads, mqls, sqls, opps, sales],
+                    backgroundColor: [
+                        '#f72585',
+                        '#b5179e',
+                        '#7209b7',
+                        '#560bad',
+                        '#480ca8'
+                    ],
+                    borderWidth: 1
+                }]
+            };
+
+            // Destruir gráficos existentes
+            if(conversionChart) conversionChart.destroy();
+            if(stageChart) stageChart.destroy();
+
+            // Crear nuevos gráficos
+            const convCtx = document.getElementById('conversionChart').getContext('2d');
+            conversionChart = new Chart(convCtx, {
+                type: 'doughnut',
+                data: conversionData,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Tasas de Conversión por Etapa',
+                            font: { size: 16 }
+                        },
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+
+            const stageCtx = document.getElementById('stageChart').getContext('2d');
+            stageChart = new Chart(stageCtx, {
+                type: 'doughnut',
+                data: stageData,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Volumen por Etapa',
+                            font: { size: 16 }
+                        },
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        }
+
+        // Comparar con benchmarks
+        function compareBenchmarks() {
+            const industry = document.getElementById('industry').value;
+            const benchmarkContainer = document.getElementById('benchmark-comparison');
+            const criticalPointsContainer = document.getElementById('critical-points');
+            
+            if (!industry) {
+                benchmarkContainer.innerHTML = '<p>Selecciona una industria para ver la comparación.</p>';
+                criticalPointsContainer.innerHTML = '';
+                return;
+            }
+            
+            const leads = parseInt(document.getElementById('leads').value) || 0;
+            const mqls = parseInt(document.getElementById('mqls').value) || 0;
+            const sqls = parseInt(document.getElementById('sqls').value) || 0;
+            const opps = parseInt(document.getElementById('opps').value) || 0;
+            const sales = parseInt(document.getElementById('sales').value) || 0;
+            
+            if (leads === 0 && mqls === 0 && sqls === 0 && opps === 0 && sales === 0) {
+                benchmarkContainer.innerHTML = '<p>Ingresa tus datos para ver la comparación.</p>';
+                criticalPointsContainer.innerHTML = '';
+                return;
+            }
+            
+            const leadToMql = leads > 0 ? (mqls/leads)*100 : 0;
+            const mqlToSql = mqls > 0 ? (sqls/mqls)*100 : 0;
+            const sqlToOpp = sqls > 0 ? (opps/sqls)*100 : 0;
+            const oppToSale = opps > 0 ? (sales/opps)*100 : 0;
+            
+            const benchmark = industryBenchmarks[industry];
+            
+            let comparisonHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Etapa</th>
+                            <th>Tu Tasa</th>
+                            <th>Benchmark</th>
+                            <th>Diferencia</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Lead → MQL</td>
+                            <td>${leadToMql.toFixed(1)}%</td>
+                            <td>${benchmark.lead_mql}%</td>
+                            <td class="${leadToMql >= benchmark.lead_mql ? 'positive' : 'negative'}">
+                                ${(leadToMql - benchmark.lead_mql).toFixed(1)}%
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>MQL → SQL</td>
+                            <td>${mqlToSql.toFixed(1)}%</td>
+                            <td>${benchmark.mql_sql}%</td>
+                            <td class="${mqlToSql >= benchmark.mql_sql ? 'positive' : 'negative'}">
+                                ${(mqlToSql - benchmark.mql_sql).toFixed(1)}%
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>SQL → Oportunidad</td>
+                            <td>${sqlToOpp.toFixed(1)}%</td>
+                            <td>${benchmark.sql_opp}%</td>
+                            <td class="${sqlToOpp >= benchmark.sql_opp ? 'positive' : 'negative'}">
+                                ${(sqlToOpp - benchmark.sql_opp).toFixed(1)}%
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>SQL → Cerrado</td>
+                            <td>${oppToSale.toFixed(1)}%</td>
+                            <td>${benchmark.sql_closed}%</td>
+                            <td class="${oppToSale >= benchmark.sql_closed ? 'positive' : 'negative'}">
+                                ${(oppToSale - benchmark.sql_closed).toFixed(1)}%
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <style>
+                    .positive { color: #28a745; }
+                    .negative { color: #dc3545; }
+                </style>
+            `;
+            
+            benchmarkContainer.innerHTML = comparisonHTML;
+            
+            // Identificar puntos críticos
+            let criticalPoints = '<h3>Puntos Críticos</h3>';
+            const stages = [
+                { name: 'Lead → MQL', rate: leadToMql, benchmark: benchmark.lead_mql },
+                { name: 'MQL → SQL', rate: mqlToSql, benchmark: benchmark.mql_sql },
+                { name: 'SQL → Oportunidad', rate: sqlToOpp, benchmark: benchmark.sql_opp },
+                { name: 'SQL → Cerrado', rate: oppToSale, benchmark: benchmark.sql_closed }
+            ];
+            
+            stages.forEach(stage => {
+                if (stage.rate < stage.benchmark * 0.7) { // 30% por debajo del benchmark
+                    criticalPoints += `
+                        <div class="benchmark-result" style="background-color: #ffeaea;">
+                            <strong>${stage.name}:</strong> Tu tasa (${stage.rate.toFixed(1)}%) está significativamente por debajo del benchmark (${stage.benchmark}%)
+                        </div>
+                    `;
+                } else if (stage.rate > stage.benchmark * 1.3) { // 30% por encima del benchmark
+                    criticalPoints += `
+                        <div class="benchmark-result" style="background-color: #e6ffe6;">
+                            <strong>${stage.name}:</strong> ¡Excelente! Tu tasa (${stage.rate.toFixed(1)}%) supera el benchmark (${stage.benchmark}%)
+                        </div>
+                    `;
+                }
+            });
+            
+            criticalPointsContainer.innerHTML = criticalPoints;
+        }
+
+        // Generar recomendaciones
+        function generateRecommendations() {
+            const industry = document.getElementById('industry').value;
+            const leads = parseInt(document.getElementById('leads').value) || 0;
+            const mqls = parseInt(document.getElementById('mqls').value) || 0;
+            const sqls = parseInt(document.getElementById('sqls').value) || 0;
+            const opps = parseInt(document.getElementById('opps').value) || 0;
+            const sales = parseInt(document.getElementById('sales').value) || 0;
+            
+            const recommendationsContainer = document.getElementById('stage-recommendations');
+            
+            if (!industry || (leads === 0 && mqls === 0 && sqls === 0 && opps === 0 && sales === 0)) {
+                recommendationsContainer.innerHTML = '<h2>Selecciona una industria e ingresa tus datos para obtener recomendaciones personalizadas.</h2>';
+                return;
+            }
+            
+            const leadToMql = leads > 0 ? (mqls/leads)*100 : 0;
+            const mqlToSql = mqls > 0 ? (sqls/mqls)*100 : 0;
+            const sqlToOpp = sqls > 0 ? (opps/sqls)*100 : 0;
+            const oppToSale = opps > 0 ? (sales/opps)*100 : 0;
+            
+            let recommendationsHTML = '<div class="recommendation-container">';
+            
+            // Función para obtener recomendación según rango
+            function getRecommendation(stage, rate) {
+                const stageRecs = recommendations[stage];
+                for (let rec of stageRecs) {
+                    if (rate >= rec.range[0] && rate <= rec.range[1]) {
+                        return rec.text;
+                    }
+                }
+                return "No hay recomendación disponible para este rango.";
+            }
+            
+            recommendationsHTML += `
+                <h2>Recomendaciones para mejorar tu embudo</h2>
+                <div class="recommendation-box">
+                    <h3>Lead → MQL (${leadToMql.toFixed(1)}%)</h3>
+                    <p>${getRecommendation('lead_mql', leadToMql)}</p>
+                </div>
+                <div class="recommendation-box">
+                    <h3>MQL → SQL (${mqlToSql.toFixed(1)}%)</h3>
+                    <p>${getRecommendation('mql_sql', mqlToSql)}</p>
+                </div>
+                <div class="recommendation-box">
+                    <h3>SQL → Oportunidad (${sqlToOpp.toFixed(1)}%)</h3>
+                    <p>${getRecommendation('sql_opp', sqlToOpp)}</p>
+                </div>
+                <div class="recommendation-box">
+                    <h3>SQL → Cerrado (${oppToSale.toFixed(1)}%)</h3>
+                    <p>${getRecommendation('sql_closed', oppToSale)}</p>
+                </div>
+            `;
+            
+            recommendationsContainer.innerHTML = recommendationsHTML;
+        }
+
+        // Guardar datos en localStorage
+        function saveData() {
+            const data = {
+                leads: document.getElementById('leads').value,
+                mqls: document.getElementById('mqls').value,
+                sqls: document.getElementById('sqls').value,
+                opps: document.getElementById('opps').value,
+                sales: document.getElementById('sales').value,
+                industry: document.getElementById('industry').value
+            };
+            
+            localStorage.setItem('funnelAuditorData', JSON.stringify(data));
+            
+            // Mostrar notificación
+            const notification = document.getElementById('saveNotification');
+            notification.style.display = 'block';
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
+        // Cargar datos desde localStorage
+        function loadData() {
+            const savedData = localStorage.getItem('funnelAuditorData');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                document.getElementById('leads').value = data.leads;
+                document.getElementById('mqls').value = data.mqls;
+                document.getElementById('sqls').value = data.sqls;
+                document.getElementById('opps').value = data.opps;
+                document.getElementById('sales').value = data.sales;
+                document.getElementById('industry').value = data.industry;
+                
+                calculateFunnel();
+                alert('Datos cargados correctamente!');
+            } else {
+                alert('No hay datos guardados previamente.');
+            }
+        }
+
+        // Generar PDF
+        function generatePDF() {
+            const industry = document.getElementById('industry').value;
+            const industryName = document.getElementById('industry').options[document.getElementById('industry').selectedIndex].text;
+            
+            if (!industry) {
+                alert('Selecciona una industria antes de generar el reporte.');
+                return;
+            }
+            
+            const leads = parseInt(document.getElementById('leads').value) || 0;
+            const mqls = parseInt(document.getElementById('mqls').value) || 0;
+            const sqls = parseInt(document.getElementById('sqls').value) || 0;
+            const opps = parseInt(document.getElementById('opps').value) || 0;
+            const sales = parseInt(document.getElementById('sales').value) || 0;
+            
+            if (leads === 0 && mqls === 0 && sqls === 0 && opps === 0 && sales === 0) {
+                alert('Ingresa tus datos antes de generar el reporte.');
+                return;
+            }
+            
+            // Calcular tasas
+            const leadToMql = leads > 0 ? (mqls/leads)*100 : 0;
+            const mqlToSql = mqls > 0 ? (sqls/mqls)*100 : 0;
+            const sqlToOpp = sqls > 0 ? (opps/sqls)*100 : 0;
+            const oppToSale = opps > 0 ? (sales/opps)*100 : 0;
+            
+            const benchmark = industryBenchmarks[industry];
+            
+            // Crear PDF
+            const doc = new jsPDF();
+            
+            // Logo y título
+            doc.setFontSize(20);
+            doc.setTextColor(223, 23, 131);
+            doc.text('Reporte de Auditoría de Embudo', 105, 20, { align: 'center' });
+            doc.setFontSize(14);
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Industria: ${industryName}`, 105, 30, { align: 'center' });
+            
+            // Datos del embudo
+            doc.setFontSize(12);
+            doc.text('Datos de tu Embudo:', 20, 45);
+            
+            doc.autoTable({
+                startY: 50,
+                head: [['Etapa', 'Prospectos', 'Tasa Conversión']],
+                body: [
+                    ['Leads', leads.toString(), '-'],
+                    ['MQLs', mqls.toString(), leadToMql.toFixed(1)+'%'],
+                    ['SQLs', sqls.toString(), mqlToSql.toFixed(1)+'%'],
+                    ['Oportunidades', opps.toString(), sqlToOpp.toFixed(1)+'%'],
+                    ['Ventas Cerradas', sales.toString(), oppToSale.toFixed(1)+'%']
+                ],
+                theme: 'grid',
+                headStyles: { fillColor: [223, 23, 131] }
+            });
+            
+            // Comparación con benchmarks
+            doc.text('Comparación con Benchmarks:', 20, doc.autoTable.previous.finalY + 15);
+            
+            doc.autoTable({
+                startY: doc.autoTable.previous.finalY + 20,
+                head: [['Etapa', 'Tu Tasa', 'Benchmark', 'Diferencia']],
+                body: [
+                    ['Lead → MQL', leadToMql.toFixed(1)+'%', benchmark.lead_mql+'%', (leadToMql - benchmark.lead_mql).toFixed(1)+'%'],
+                    ['MQL → SQL', mqlToSql.toFixed(1)+'%', benchmark.mql_sql+'%', (mqlToSql - benchmark.mql_sql).toFixed(1)+'%'],
+                    ['SQL → Opp', sqlToOpp.toFixed(1)+'%', benchmark.sql_opp+'%', (sqlToOpp - benchmark.sql_opp).toFixed(1)+'%'],
+                    ['SQL → Cerrado', oppToSale.toFixed(1)+'%', benchmark.sql_closed+'%', (oppToSale - benchmark.sql_closed).toFixed(1)+'%']
+                ],
+                theme: 'grid',
+                headStyles: { fillColor: [140, 49, 143] },
+                didDrawCell: (data) => {
+                    if (data.column.index === 3 && data.cell.raw) {
+                        const diff = parseFloat(data.cell.raw);
+                        if (diff < 0) {
+                            data.cell.styles.textColor = [220, 53, 69]; // Rojo
+                        } else if (diff > 0) {
+                            data.cell.styles.textColor = [40, 167, 69]; // Verde
+                        }
+                    }
+                }
+            });
+            
+            // Recomendaciones
+            doc.text('Recomendaciones:', 20, doc.autoTable.previous.finalY + 15);
+            
+            function getRecommendation(stage, rate) {
+                const stageRecs = recommendations[stage];
+                for (let rec of stageRecs) {
+                    if (rate >= rec.range[0] && rate <= rec.range[1]) {
+                        return rec.text;
+                    }
+                }
+                return "No hay recomendación disponible para este rango.";
+            }
+            
+            const recLeadMql = getRecommendation('lead_mql', leadToMql);
+            const recMqlSql = getRecommendation('mql_sql', mqlToSql);
+            const recSqlOpp = getRecommendation('sql_opp', sqlToOpp);
+            const recOppSale = getRecommendation('sql_closed', oppToSale);
+            
+            doc.setFontSize(10);
+            doc.text(`Lead → MQL (${leadToMql.toFixed(1)}%): ${recLeadMql}`, 20, doc.autoTable.previous.finalY + 25, { maxWidth: 170 });
+            doc.text(`MQL → SQL (${mqlToSql.toFixed(1)}%): ${recMqlSql}`, 20, doc.autoTable.previous.finalY + 40, { maxWidth: 170 });
+            doc.text(`SQL → Opp (${sqlToOpp.toFixed(1)}%): ${recSqlOpp}`, 20, doc.autoTable.previous.finalY + 55, { maxWidth: 170 });
+            doc.text(`Opp → Cerrado (${oppToSale.toFixed(1)}%): ${recOppSale}`, 20, doc.autoTable.previous.finalY + 70, { maxWidth: 170 });
+            
+            // Guardar PDF
+            doc.save(`Reporte_Embudo_${industryName}.pdf`);
+        }
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            // Ejemplo inicial
+            document.getElementById('leads').value = 1500;
+            document.getElementById('mqls').value = 300;
+            document.getElementById('sqls').value = 90;
+            document.getElementById('opps').value = 36;
+            document.getElementById('sales').value = 14;
+            calculateFunnel();
+        });
+    </script>
+</body>
+</html>
