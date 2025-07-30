@@ -37,27 +37,6 @@
             color: var(--dark);
         }
         
-        h1 {
-            font-size: 2rem;
-            font-weight: bold;
-            margin-bottom: 1.5rem;
-            color: var(--dark);
-        }
-        
-     h2 {
-    font-size: 1.5rem !important;
-    font-weight: bold !important;
-    margin-bottom: 1rem !important;
-    color: var(--dark) !important;
-}
-        
-        h3 {
-            font-size: 1.25rem;
-            font-weight: bold;
-            margin-bottom: 0.75rem;
-            color: var(--dark);
-        }
-        
         .custom-image-widget {
             position: fixed;
             top: 100px;
@@ -198,7 +177,7 @@
             background-color: #f8f9fa;
             border-left: 4px solid var(--primary);
             padding: 15px;
-            margin: 10px 0;
+            margin: 15px 0;
             border-radius: 0 4px 4px 0;
         }
         
@@ -264,7 +243,7 @@
         <div class="p-6">
             <div class="mb-8">
                 <div class="w-12 h-12 bg-gradient-to-br from-pink-500 to-purple-600 rounded-lg flex items-center justify-center mb-4">
-                    <i data-lucide="filter" class="w-6 h-6 text-white"></i>
+                    <i data-lucide="funnel" class="w-6 h-6 text-white"></i>
                 </div>
                 <h1 class="text-2xl font-bold text-white mb-2">
                     Funnel Auditor
@@ -282,8 +261,8 @@
                 <div class="nav-item" onclick="showSection('recomendaciones', this)"><i data-lucide="rocket"></i><span>Recomendaciones</span></div>
             </div>
             <div style="position: absolute; bottom: 20px; left: 20px; right: 20px;">
-                <button class="btn" onclick="saveData()">💾 Guardar Datos</button>
-                <button class="btn btn-secondary" onclick="loadData()">📂 Cargar Datos</button>
+                <button class="btn flex items-center justify-center gap-2" onclick="saveData()"><i data-lucide="save" class="w-4 h-4"></i><span>Guardar Datos</span></button>
+                <button class="btn btn-secondary flex items-center justify-center gap-2" onclick="loadData()"><i data-lucide="folder-open" class="w-4 h-4"></i><span>Cargar Datos</span></button>
             </div>
         </div>
     </div>
@@ -295,7 +274,10 @@
             <h1 class="text-3xl font-bold mb-6 text-gray-900">Auditoría de Embudo de Ventas</h1>
             
             <div class="card">
-                <h2>📊 Ingresa tus datos</h2>
+                <h2 class="text-xl font-bold text-gray-800 pb-3 mb-4 border-b border-gray-200 flex items-center gap-2">
+                    <i data-lucide="database" class="text-gray-500 w-5 h-5"></i>
+                    <span>Ingresa tus datos</span>
+                </h2>
 
                 <div class="industry-selector">
                     <label for="industry" class="block mb-2 font-medium text-gray-700">Selecciona tu industria:</label>
@@ -381,10 +363,6 @@
                 </div>
             </div>
         </div>
-        
-        
-        
-        
 
         <!-- Definitions Section -->
         <div id="definiciones" class="section" style="display:none;">
@@ -407,22 +385,24 @@
                 </table>
             </div>
         </div>
-        
-        
-        
-        
 
         <!-- Diagnosis Section -->
         <div id="diagnostico" class="section" style="display:none;">
             <h1 class="text-3xl font-bold mb-6 text-gray-900">Diagnóstico de Rendimiento</h1>
             <div class="card">
-                <h2>Comparación con Benchmarks</h2>
+                <h2 class="text-xl font-bold text-gray-800 pb-3 mb-4 border-b border-gray-200 flex items-center gap-2">
+                    <i data-lucide="bar-chart-3" class="text-gray-500 w-5 h-5"></i>
+                    <span>Comparación con Benchmarks</span>
+                </h2>
                 <div id="benchmark-comparison">
                     <p>Selecciona una industria y completa tus datos para ver el análisis comparativo.</p>
                 </div>
             </div>
             <div class="card">
-                <h2>Análisis de Etapas</h2>
+                <h2 class="text-xl font-bold text-gray-800 pb-3 mb-4 border-b border-gray-200 flex items-center gap-2">
+                    <i data-lucide="clipboard-check" class="text-gray-500 w-5 h-5"></i>
+                    <span>Análisis de Etapas</span>
+                </h2>
                 <div id="critical-points">
                     <p>Completa tus datos para ver el análisis de etapas.</p>
                 </div>
@@ -479,7 +459,7 @@
             <h1 class="text-3xl font-bold mb-6 text-gray-900">Recomendaciones Personalizadas</h1>
             <div class="card">
                 <div id="stage-recommendations">
-                    <h2>Selecciona una industria e ingresa tus datos para obtener recomendaciones personalizadas.</h2>
+                    <h2 class="text-xl font-bold text-gray-800 pb-3 mb-4 border-b border-gray-200">Selecciona una industria e ingresa tus datos para obtener recomendaciones personalizadas.</h2>
                 </div>
             </div>
         </div>
@@ -496,13 +476,13 @@
 
     <!-- Floating Banner -->
     <div class="fixed bottom-0 right-0 w-full md:bottom-6 md:right-12 md:w-auto z-50" x-data="{ bannerOpen: true, videoOpen: false }" x-show="bannerOpen">
-        <div x-show="videoOpen" @click.away="videoOpen = false" class="fixed inset-0 bg-black bg-opacity-75 z-[52] flex items-center justify-center p-4" style="display: none;">
+        <div x-show="videoOpen" @click.away="videoOpen = false" class="fixed inset-0 bg-black bg-opacity-75 z-[52] flex items-center justify-center p-4">
             <div class="relative w-full max-w-4xl bg-white rounded-lg overflow-hidden">
                 <button class="absolute top-2 right-2 z-50 text-white bg-black/50 hover:bg-black/75 rounded-full p-1" @click="videoOpen = false">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
                 <div class="aspect-w-16 aspect-h-9">
-                    <iframe width="100%" height="100%" src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="w-full h-[300px] md:h-[500px]"></iframe>
+                    <iframe width="100%" height="100%" src="https://www.youtube.com/embed/VIDEO_ID_PLACEHOLDER?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="w-full h-[300px] md:h-[500px]"></iframe>
                 </div>
             </div>
         </div>
@@ -519,6 +499,11 @@
     </div>
     
     <script>
+        // Initialize Lucide icons on load
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+        });
+
         // Global variables for charts
         let conversionChart, stageChart;
         const { jsPDF } = window.jspdf;
@@ -628,6 +613,14 @@
         }
 
         function updateCharts(leads, mqls, sqls, opps, sales, rates) {
+            const commonOptions = {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    title: { display: true, font: { size: 16 } }
+                }
+            };
+
             const conversionData = {
                 labels: ['Lead → MQL', 'MQL → SQL', 'SQL → Opp', 'Opp → Venta'],
                 datasets: [{
@@ -653,14 +646,14 @@
             conversionChart = new Chart(convCtx, {
                 type: 'doughnut',
                 data: conversionData,
-                options: { responsive: true, plugins: { title: { display: true, text: 'Tasas de Conversión por Etapa', font: { size: 16 } }, legend: { position: 'bottom' } } }
+                options: { ...commonOptions, plugins: { ...commonOptions.plugins, title: { ...commonOptions.plugins.title, text: 'Tasas de Conversión por Etapa' } } }
             });
 
             const stageCtx = document.getElementById('stageChart').getContext('2d');
             stageChart = new Chart(stageCtx, {
                 type: 'doughnut',
                 data: stageData,
-                options: { responsive: true, plugins: { title: { display: true, text: 'Volumen por Etapa', font: { size: 16 } }, legend: { position: 'bottom' } } }
+                options: { ...commonOptions, plugins: { ...commonOptions.plugins, title: { ...commonOptions.plugins.title, text: 'Volumen por Etapa' } } }
             });
         }
 
@@ -715,8 +708,8 @@
             const industry = document.getElementById('industry').value;
             const recommendationsContainer = document.getElementById('stage-recommendations');
             
-            if (!industry) {
-                recommendationsContainer.innerHTML = '<h2>Selecciona una industria e ingresa tus datos para obtener recomendaciones.</h2>';
+            if (!industry || !document.getElementById('leads').value) {
+                recommendationsContainer.innerHTML = `<h2 class="text-xl font-bold text-gray-800 pb-3 mb-4 border-b border-gray-200">Selecciona una industria e ingresa tus datos para obtener recomendaciones.</h2>`;
                 return;
             }
 
@@ -726,12 +719,16 @@
             };
 
             recommendationsContainer.innerHTML = `
-                <h2>Recomendaciones para Mejorar tu Embudo</h2>
-                <div class="recommendation-box"><h3>Lead → MQL (${leadToMql.toFixed(1)}%)</h3><p>${getRecommendation('lead_mql', leadToMql)}</p></div>
-                <div class="recommendation-box"><h3>MQL → SQL (${mqlToSql.toFixed(1)}%)</h3><p>${getRecommendation('mql_sql', mqlToSql)}</p></div>
-                <div class="recommendation-box"><h3>SQL → Oportunidad (${sqlToOpp.toFixed(1)}%)</h3><p>${getRecommendation('sql_opp', sqlToOpp)}</p></div>
-                <div class="recommendation-box"><h3>SQL → Cerrado (${oppToSale.toFixed(1)}%)</h3><p>${getRecommendation('sql_closed', oppToSale)}</p></div>
+                <h2 class="text-xl font-bold text-gray-800 pb-3 mb-4 border-b border-gray-200 flex items-center gap-2">
+                    <i data-lucide="lightbulb" class="text-gray-500 w-5 h-5"></i>
+                    <span>Recomendaciones para Mejorar tu Embudo</span>
+                </h2>
+                <div class="recommendation-box"><h3 class="text-lg font-semibold text-gray-700 mb-2">Lead → MQL (${leadToMql.toFixed(1)}%)</h3><p>${getRecommendation('lead_mql', leadToMql)}</p></div>
+                <div class="recommendation-box"><h3 class="text-lg font-semibold text-gray-700 mb-2">MQL → SQL (${mqlToSql.toFixed(1)}%)</h3><p>${getRecommendation('mql_sql', mqlToSql)}</p></div>
+                <div class="recommendation-box"><h3 class="text-lg font-semibold text-gray-700 mb-2">SQL → Oportunidad (${sqlToOpp.toFixed(1)}%)</h3><p>${getRecommendation('sql_opp', sqlToOpp)}</p></div>
+                <div class="recommendation-box"><h3 class="text-lg font-semibold text-gray-700 mb-2">SQL → Cerrado (${oppToSale.toFixed(1)}%)</h3><p>${getRecommendation('sql_closed', oppToSale)}</p></div>
             `;
+            lucide.createIcons();
         }
 
         function saveData() {
@@ -836,7 +833,7 @@
                 { title: `Lead → MQL (${rates.leadToMql.toFixed(1)}%)`, text: getRecommendation('lead_mql', rates.leadToMql) },
                 { title: `MQL → SQL (${rates.mqlToSql.toFixed(1)}%)`, text: getRecommendation('mql_sql', rates.mqlToSql) },
                 { title: `SQL → Oportunidad (${rates.sqlToOpp.toFixed(1)}%)`, text: getRecommendation('sql_opp', rates.sqlToOpp) },
-                { title: `SQL → Cerrado (${rates.oppToSale.toFixed(1)}%)`, text: getRecommendation('sql_closed', oppToSale) }
+                { title: `SQL → Cerrado (${rates.oppToSale.toFixed(1)}%)`, text: getRecommendation('sql_closed', rates.oppToSale) }
             ];
             
             recs.forEach(rec => {
@@ -855,7 +852,6 @@
         document.addEventListener('DOMContentLoaded', function() {
             lucide.createIcons();
             
-            // Set initial example values and calculate
             document.getElementById('leads').value = 1500;
             document.getElementById('mqls').value = 300;
             document.getElementById('sqls').value = 90;
