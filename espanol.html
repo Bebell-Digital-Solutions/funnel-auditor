@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auditoría de Embudo de Ventas</title>
+    
+    <!-- External Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script> 
+    
+    <style>
+        :root {
+            --primary: #df1783;
+            --secondary: #8c318f;
+            --accent: rgba(255,255,255,0.2);
+            --light: #f8f9fa;
+            --dark: #212529;
+        }
+        
+        
+             .custom-image-widget {
+            position: fixed !important;
+            top: 100px !important; 
+            margin: 0 !important;
+            padding: 0 !important;
+            right: 0px; 
+            z-index: 999;
+        }
+        
+        .custom-image {
+            width: 70px;
+            height: auto;
+            transition: transform 0.2s;
+        }
+        
+        .custom-image-widget:hover .custom-image {
+            transform: scale(1.05); 
+        }  
+        
+        
+        
+        
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            min-height: 100vh;
+            background-color: #f5f7fa;
+            color: var(--dark);
+        }
+        
+        h1 {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 1.5rem;
+            color: var(--dark);
+        }
+        
+        h2 {
+            font-size: 1.5rem !important;
+            font-weight: bold !important;
+            margin-bottom: 1rem !important;
+            color: var(--dark) !important;
+        }
+        
+        h3 {
+            font-size: 1.25rem;
+            font-weight: bold;
+            margin-bottom: 0.75rem;
+            color: var(--dark);
+        }
+
+        .sidebar {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 24px;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main-content {
+            padding: 30px;
+            overflow-y: auto;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            margin: 8px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .nav-item:hover {
+            background-color: var(--accent);
+        }
+        
+        .nav-item.active {
+            background-color: var(--accent);
+            font-weight: bold;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            margin-bottom: 24px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+            vertical-align: top;
+        }
+        
+        th {
+            background-color: var(--light);
+            font-weight: 600;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-sizing: border-box;
+            color: var(--dark);
+            background-color: #fbfbfb;
+            transition: all 0.2s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(223, 23, 131, 0.2);
+        }
+        
+        .chart-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background 0.3s;
+            width: 100%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn:hover {
+            background-color: var(--secondary);
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        
+        .recommendation-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid var(--primary);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .positive { color: #16a34a; font-weight: bold; }
+        .negative { color: #dc2626; font-weight: bold; }
+
+        .save-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #22c55e;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .save-notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .section-footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+        }
+
+
+
+        .aspect-w-16 { position: relative; padding-bottom: 56.25%; }
+        .aspect-w-16 > iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        
+        
+        
+        
+
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 1fr;
+            }
+            .sidebar {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+
+  <div class="custom-image-widget" style="position: relative; display: inline-block;">
+        <a href="https://elnegocio-digital.translate.goog/?_x_tr_sl=auto&_x_tr_tl=en&_x_tr_hl=en-US&_x_tr_pto=wapp">
+            <img class="custom-image" 
+                 src="https://bucket.mlcdn.com/a/3336/3336910/images/138f14304ea21715dfae64ae5fe1d71b08c2d451.png" 
+                 alt="English Translation"
+                 style="display: block;">
+        </a>
+    </div>
+    
+    
+    
+    
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="mb-10">
+            <div class="w-16 h-16 bg-gradient-to-br from-pink-500 to-purple-600 rounded-xl flex items-center justify-center mb-4">
+                <i data-lucide="filter" class="w-8 h-8 text-white"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-white mb-2">Funnel Auditor</h1>
+            <p class="text-white/80 text-sm leading-relaxed">Calcula el Rendimiento de tu embudo de ventas.</p>
+        </div>
+        
+        <nav class="flex-grow">
+            <div id="nav-dashboard" class="nav-item active" onclick="showSection('dashboard', this)"><i data-lucide="layout-dashboard"></i><span>Empieza Aquí</span></div>
+            <div id="nav-definiciones" class="nav-item" onclick="showSection('definiciones', this)"><i data-lucide="book-open"></i><span>Definiciones</span></div>
+            <div id="nav-diagnostico" class="nav-item" onclick="showSection('diagnostico', this)"><i data-lucide="search"></i><span>Diagnóstico</span></div>
+            <div id="nav-benchmarks" class="nav-item" onclick="showSection('benchmarks', this)"><i data-lucide="trophy"></i><span>Benchmarks</span></div>
+            <div id="nav-recomendaciones" class="nav-item" onclick="showSection('recomendaciones', this)"><i data-lucide="rocket"></i><span>Recomendaciones</span></div>
+        </nav>
+
+        <div class="space-y-3 mt-auto">
+            <button class="btn" onclick="saveData()"><i data-lucide="save" class="w-5 h-5"></i> Guardar Datos</button>
+            <button class="btn btn-secondary" onclick="loadData()"><i data-lucide="folder-open" class="w-5 h-5"></i> Cargar Datos</button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Dashboard Section -->
+        <div id="dashboard" class="section">
+            <h1 class="text-3xl font-bold mb-6 text-gray-900">Auditoría de Embudo de Ventas</h1>
+            
+            <div class="card">
+                <h2>📊 Ingresa tus datos</h2>
+
+                <div class="my-6">
+                    <label for="industry" class="block mb-2 font-medium text-gray-700">Selecciona tu industria:</label>
+                    <select id="industry" onchange="calculateFunnel()" class="w-full">
+                        <option value="">-- Seleccionar --</option>
+                    </select>
+                </div>
+                <table id="funnel-table" class="w-full">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="p-3 text-left font-semibold">Etapa</th>
+                            <th class="p-3 text-left font-semibold"># Prospectos (últimos 30 días)</th>
+                            <th class="p-3 text-left font-semibold">Tasa Conversión</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="p-3 font-medium">Leads</td>
+                            <td class="p-3"><input type="number" id="leads" placeholder="Ej: 1500" onchange="calculateFunnel()"></td>
+                            <td id="leads-conv" class="p-3 font-mono">-</td>
+                        </tr>
+                        <tr>
+                            <td class="p-3 font-medium">MQLs</td>
+                            <td class="p-3"><input type="number" id="mqls" placeholder="Ej: 300" onchange="calculateFunnel()"></td>
+                            <td id="mqls-conv" class="p-3 font-mono">-</td>
+                        </tr>
+                        <tr>
+                            <td class="p-3 font-medium">SQLs</td>
+                            <td class="p-3"><input type="number" id="sqls" placeholder="Ej: 90" onchange="calculateFunnel()"></td>
+                            <td id="sqls-conv" class="p-3 font-mono">-</td>
+                        </tr>
+                        <tr>
+                            <td class="p-3 font-medium">Oportunidades</td>
+                            <td class="p-3"><input type="number" id="opps" placeholder="Ej: 36" onchange="calculateFunnel()"></td>
+                            <td id="opps-conv" class="p-3 font-mono">-</td>
+                        </tr>
+                        <tr>
+                            <td class="p-3 font-medium">Ventas Cerradas</td>
+                            <td class="p-3"><input type="number" id="sales" placeholder="Ej: 14" onchange="calculateFunnel()"></td>
+                            <td id="sales-conv" class="p-3 font-mono">-</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <button class="btn mt-6" onclick="generatePDF()"><i data-lucide="file-text" class="w-5 h-5"></i> Generar Reporte PDF</button>
+            </div>
+
+            <div class="chart-container">
+                <div class="card"><canvas id="conversionChart"></canvas></div>
+                <div class="card"><canvas id="stageChart"></canvas></div>
+            </div>
+        </div>
+        
+        <!-- Definitions Section -->
+        <div id="definiciones" class="section" style="display:none;">
+            <h1 class="text-3xl font-bold mb-6 text-gray-900">Definiciones del Embudo</h1>
+            <div class="card">
+                <table id="definitions-table" class="w-full">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="p-3 text-left font-semibold">Etapa</th>
+                            <th class="p-3 text-left font-semibold">Definición</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Diagnosis Section -->
+        <div id="diagnostico" class="section" style="display:none;">
+            <h1 class="text-3xl font-bold mb-6 text-gray-900">Diagnóstico de Rendimiento</h1>
+            <div class="card">
+                <h2>Comparación con Benchmarks</h2>
+                <div id="benchmark-comparison">
+                    <p class="text-center text-gray-600">Selecciona una industria y completa tus datos para ver el análisis.</p>
+                </div>
+            </div>
+            <div class="card">
+                <h2>Análisis de Etapas</h2>
+                <div id="critical-points">
+                    <p class="text-center text-gray-600">Completa tus datos para ver el análisis de etapas.</p>
+                </div>
+            </div>
+        </div>
+        
+        
+        
+        
+        
+        
+        
+        <!-- Benchmarks Section -->
+        <div id="benchmarks" class="section" style="display:none;">
+            <h1 class="text-3xl font-bold mb-6 text-gray-900">Benchmarks por Industria</h1>
+            <p class="mb-4 text-sm text-gray-600">Según reportes y estudios realizados en el periodo 2017-2024.</p>
+            <div class="card overflow-x-auto">
+                <table id="benchmarks-table" class="w-full min-w-[600px]">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="p-3 text-left font-semibold">Industria</th>
+                            <th class="p-3 text-left font-semibold">Lead → MQL</th>
+                            <th class="p-3 text-left font-semibold">MQL → SQL</th>
+                            <th class="p-3 text-left font-semibold">SQL → Opp</th>
+                            <th class="p-3 text-left font-semibold">Opp → Venta</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+        
+        
+        
+        
+        
+        
+        
+        
+        
+
+        <!-- Recommendations Section -->
+        <div id="recomendaciones" class="section" style="display:none;">
+            <h1 class="text-3xl font-bold mb-6 text-gray-900">Recomendaciones Personalizadas</h1>
+            <div class="card">
+                <div id="stage-recommendations">
+                    <h2 class="text-center text-gray-600">Selecciona una industria e ingresa tus datos para obtener recomendaciones.</h2>
+                </div>
+            </div>
+        </div>
+
+        <footer class="section-footer">
+            <p>Powered with 💖 by <strong class="text-primary">Bebell Digital Solutions</strong></p>
+            <p>Copyright © 2025 • All rights reserved</p>
+        </footer>
+    </div>
+
+    <div class="save-notification" id="saveNotification">
+        ¡Datos guardados correctamente!
+    </div>
+
+    <!-- Floating Banner -->
+
+
+
+    
+    <script>
+        // --- DATA AND CONSTANTS ---
+        const industries = { aeroespacial_aviacion: "Aeroespacial y Aviación", automotriz: "Automotriz", saas_b2b: "B2B SaaS", bienes_raices: "Bienes Raíces", biotecnologia: "Biotecnología", ciberseguridad: "Ciberseguridad", climatizacion: "Climatización (HVAC)", comercio_electronico: "eCommerce", construccion: "Construcción", desarrollo_software: "Desarrollo de Software", educacion_superior: "Educación Superior", energia_solar: "Energía Solar", entretenimiento: "Entretenimiento", farmaceutica: "Farmacéutica", fintech: "Fintech", hoteles_resorts: "Hoteles y Resorts", ingenieria: "Ingeniería", iot_industrial: "IoT Industrial", maquinaria_pesada: "Maquinaria Pesada", manufactura: "Manufactura", petroleo_gas: "Petróleo y Gas", reclutamiento: "Reclutamiento", salud: "Salud", seguros_empresariales: "Seguros Empresariales", servicios_ambientales: "Servicios Ambientales", servicios_financieros: "Servicios Financieros", servicios_legales: "Servicios Legales", servicios_tecnologicos: "Servicios Tecnológicos", transporte_logistica: "Transporte y Logística", tratamiento_adicciones: "Tratamiento de Adicciones" };
+        const industryBenchmarks = {
+    aeroespacial_aviacion: { lead_mql: 18, mql_sql: 32, sql_opp: 49, sql_closed: 61 },
+    automotriz: { lead_mql: 21, mql_sql: 42, sql_opp: 46, sql_closed: 49 },
+    bienes_raices: { lead_mql: 27, mql_sql: 33, sql_opp: 40, sql_closed: 53 },
+    biotecnologia: { lead_mql: 36, mql_sql: 40, sql_opp: 48, sql_closed: 55 },
+    ciberseguridad: { lead_mql: 24, mql_sql: 40, sql_opp: 43, sql_closed: 46 },
+    climatizacion: { lead_mql: 42, mql_sql: 51, sql_opp: 55, sql_closed: 49 },
+    comercio_electronico: { lead_mql: 23, mql_sql: 58, sql_opp: 66, sql_closed: 60 },
+    construccion: { lead_mql: 17, mql_sql: 37, sql_opp: 50, sql_closed: 54 },
+    desarrollo_software: { lead_mql: 28, mql_sql: 39, sql_opp: 60, sql_closed: 59 },
+    educacion_superior: { lead_mql: 45, mql_sql: 46, sql_opp: 61, sql_closed: 66 },
+    energia_solar: { lead_mql: 45, mql_sql: 36, sql_opp: 58, sql_closed: 61 },
+    entretenimiento: { lead_mql: 19, mql_sql: 41, sql_opp: 54, sql_closed: 61 },
+    farmaceutica: { lead_mql: 41, mql_sql: 56, sql_opp: 51, sql_closed: 64 },
+    fintech: { lead_mql: 21, mql_sql: 46, sql_opp: 49, sql_closed: 58 },
+    hoteles_resorts: { lead_mql: 21, mql_sql: 47, sql_opp: 58, sql_closed: 60 },
+    ingenieria: { lead_mql: 27, mql_sql: 36, sql_opp: 48, sql_closed: 52 },
+    iot_industrial: { lead_mql: 22, mql_sql: 39, sql_opp: 46, sql_closed: 51 },
+    manufactura: { lead_mql: 26, mql_sql: 41, sql_opp: 46, sql_closed: 51 },
+    maquinaria_pesada: { lead_mql: 29, mql_sql: 48, sql_opp: 58, sql_closed: 56 },
+    petroleo_gas: { lead_mql: 32, mql_sql: 38, sql_opp: 42, sql_closed: 47 },
+    reclutamiento: { lead_mql: 25, mql_sql: 32, sql_opp: 45, sql_closed: 52 },
+    saas_b2b: { lead_mql: 39, mql_sql: 38, sql_opp: 42, sql_closed: 37 },
+    salud: { lead_mql: 24, mql_sql: 38, sql_opp: 51, sql_closed: 51 },
+    seguros_empresariales: { lead_mql: 23, mql_sql: 51, sql_opp: 49, sql_closed: 52 },
+    servicios_ambientales: { lead_mql: 20, mql_sql: 43, sql_opp: 58, sql_closed: 54 },
+    servicios_financieros: { lead_mql: 29, mql_sql: 38, sql_opp: 49, sql_closed: 53 },
+    servicios_legales: { lead_mql: 32, mql_sql: 35, sql_opp: 48, sql_closed: 46 },
+    servicios_tecnologicos: { lead_mql: 19, mql_sql: 38, sql_opp: 41, sql_closed: 46 },
+    transporte_logistica: { lead_mql: 31, mql_sql: 44, sql_opp: 49, sql_closed: 56 },
+    tratamiento_adicciones: { lead_mql: 23, mql_sql: 39, sql_opp: 45, sql_closed: 48 }
+};
+        const recommendations = { lead_mql: [ { range: [0, 10], text: "Tu conversión de Lead a MQL es baja. Implementa programas de lead nurturing con email marketing automatizado y contenido educativo para guiar a los prospectos." }, { range: [11, 20], text: "Para mejorar la conversión a MQL, optimiza tus formularios de captación, reduce el número de campos y añade preguntas de calificación clave." }, { range: [21, 35], text: "Estás en un rango aceptable. Mejora tu targeting de anuncios y contenido para atraer leads de mayor calidad que se conviertan más fácilmente en MQLs." }, { range: [36, 100], text: "Excelente tasa de conversión. Tu marketing atrae prospectos de alta calidad. Considera escalar tus campañas para aumentar el volumen de leads." } ], mql_sql: [ { range: [0, 20], text: "La transición de MQL a SQL es un punto débil. Revisa tu proceso de calificación y alinea mejor los criterios entre marketing y ventas para asegurar que solo los leads listos pasen." }, { range: [21, 35], text: "Implementa un sistema de puntuación de leads (lead scoring) para priorizar los MQLs más calificados y asegurar un traspaso más efectivo a ventas." }, { range: [36, 50], text: "Buena conversión. Para optimizarla, proporciona información clara sobre precios y beneficios desde las primeras interacciones para filtrar y cualificar mejor." }, { range: [51, 100], text: "Tasa excepcional. Tu proceso de calificación es muy efectivo. Enfócate en mantener la calidad y consistencia de los MQLs que envías a ventas." } ], sql_opp: [ { range: [0, 30], text: "La conversión de SQL a Oportunidad es baja. Capacita a tu equipo de ventas en técnicas de descubrimiento de necesidades para identificar y crear oportunidades de venta reales." }, { range: [31, 45], text: "Para crear más oportunidades, desarrolla casos de éxito, demos personalizadas y testimonios que demuestren el valor tangible de tu solución." }, { range: [46, 60], text: "Tasa saludable. Optimiza tus propuestas comerciales para que sean más persuasivas, personalizadas y centradas en los problemas del cliente." }, { range: [61, 100], text: "Tu proceso de ventas es muy efectivo para convertir SQLs en oportunidades. Identifica y replica las tácticas que están funcionando mejor." } ], sql_closed: [ { range: [0, 30], text: "Tu tasa de cierre necesita mejorar. Implementa ofertas por tiempo limitado, garantías de satisfacción o facilidades de pago para incentivar la decisión de compra." }, { range: [31, 50], text: "Mejora tu proceso de seguimiento post-propuesta con recordatorios estratégicos y contenido que resuelva las últimas dudas del prospecto." }, { range: [51, 65], text: "Buena tasa de cierre. Analiza las objeciones más comunes y prepara respuestas efectivas para manejarlas proactivamente durante la negociación." }, { range: [66, 100], text: "Tasa de cierre excelente. Tu equipo de ventas es muy eficaz. Considera aumentar el volumen de oportunidades para capitalizar esta fortaleza." } ] };
+        const definitions = [ { stage: "Lead", text: "Contacto no spam que ha completado un formulario, solicitado una demo, descargado una prueba gratuita o interactuado con marketing, pero sin intención clara de compra." }, { stage: "MQL (Lead Calificado por Marketing)", text: "Lead que muestra interés de compra y capacidad financiera, pero aún no ha sido validado por ventas." }, { stage: "SQL (Lead Calificado por Ventas)", text: "MQL que ha recibido información de precios y quiere avanzar en el proceso." }, { stage: "Oportunidad", text: "SQL con una propuesta formal o contrato en revisión activa." }, { stage: "Venta Cerrada", text: "Cliente que ha firmado un contrato pero aún no ha realizado el primer pago." } ];
+        
+        // --- GLOBAL VARIABLES ---
+        let conversionChart, stageChart;
+        const { jsPDF } = window.jspdf;
+
+        // --- NAVIGATION ---
+        function showSection(sectionId, navElement) {
+            document.querySelectorAll('.section').forEach(section => section.style.display = 'none');
+            document.getElementById(sectionId).style.display = 'block';
+            
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            if (navElement) {
+                navElement.classList.add('active');
+            }
+
+            // Recalculate if we navigate to a section that needs data
+            if (['diagnostico', 'recomendaciones'].includes(sectionId)) {
+                calculateFunnel();
+            }
+        }
+
+        // --- CORE LOGIC ---
+        function calculateFunnel() {
+            const leads = parseInt(document.getElementById('leads').value) || 0;
+            const mqls = parseInt(document.getElementById('mqls').value) || 0;
+            const sqls = parseInt(document.getElementById('sqls').value) || 0;
+            const opps = parseInt(document.getElementById('opps').value) || 0;
+            const sales = parseInt(document.getElementById('sales').value) || 0;
+
+            const leadToMql = leads > 0 ? (mqls / leads) * 100 : 0;
+            const mqlToSql = mqls > 0 ? (sqls / mqls) * 100 : 0;
+            const sqlToOpp = sqls > 0 ? (opps / sqls) * 100 : 0;
+            const oppToSale = opps > 0 ? (sales / opps) * 100 : 0;
+            
+            document.getElementById('mqls-conv').textContent = leads > 0 ? leadToMql.toFixed(1) + '%' : '-';
+            document.getElementById('sqls-conv').textContent = mqls > 0 ? mqlToSql.toFixed(1) + '%' : '-';
+            document.getElementById('opps-conv').textContent = sqls > 0 ? sqlToOpp.toFixed(1) + '%' : '-';
+            document.getElementById('sales-conv').textContent = opps > 0 ? oppToSale.toFixed(1) + '%' : '-';
+            
+            const rates = { leadToMql, mqlToSql, sqlToOpp, oppToSale };
+            const funnelData = { leads, mqls, sqls, opps, sales };
+
+            updateCharts(funnelData, rates);
+            compareBenchmarks(rates);
+            generateRecommendations(rates);
+        }
+
+        // --- CHARTING ---
+        function updateCharts(funnelData, rates) {
+            const chartColors = ['#df1783', '#b5179e', '#7209b7', '#560bad', '#480ca8'];
+            const chartOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#333', font: { size: 12 } } } } };
+
+            // Conversion Chart
+            const convCtx = document.getElementById('conversionChart').getContext('2d');
+            const conversionData = {
+                labels: ['Lead → MQL', 'MQL → SQL', 'SQL → Opp', 'Opp → Venta'],
+                datasets: [{ label: 'Tasa de Conversión (%)', data: [rates.leadToMql, rates.mqlToSql, rates.sqlToOpp, rates.oppToSale], backgroundColor: chartColors, borderWidth: 0 }]
+            };
+            if(conversionChart) conversionChart.destroy();
+            conversionChart = new Chart(convCtx, { type: 'doughnut', data: conversionData, options: { ...chartOptions, plugins: { ...chartOptions.plugins, title: { display: true, text: 'Tasas de Conversión', color: '#333', font: { size: 16 } } } } });
+
+            // Stage Chart
+            const stageCtx = document.getElementById('stageChart').getContext('2d');
+            const stageData = {
+                labels: ['Leads', 'MQLs', 'SQLs', 'Oportunidades', 'Ventas'],
+                datasets: [{ label: 'Volumen', data: [funnelData.leads, funnelData.mqls, funnelData.sqls, funnelData.opps, funnelData.sales], backgroundColor: chartColors, borderWidth: 0 }]
+            };
+            if(stageChart) stageChart.destroy();
+            stageChart = new Chart(stageCtx, { type: 'doughnut', data: stageData, options: { ...chartOptions, plugins: { ...chartOptions.plugins, title: { display: true, text: 'Volumen por Etapa', color: '#333', font: { size: 16 } } } } });
+        }
+
+        // --- DYNAMIC CONTENT ---
+        function compareBenchmarks(rates) {
+            const industry = document.getElementById('industry').value;
+            const benchmarkContainer = document.getElementById('benchmark-comparison');
+            const criticalPointsContainer = document.getElementById('critical-points');
+            
+            if (!industry) {
+                benchmarkContainer.innerHTML = '<p class="text-center text-gray-600">Selecciona una industria para ver la comparación.</p>';
+                criticalPointsContainer.innerHTML = '<p class="text-center text-gray-600">Selecciona una industria para ver el análisis.</p>';
+                return;
+            }
+
+            const benchmark = industryBenchmarks[industry];
+            const stages = [
+                { name: 'Lead → MQL', rate: rates.leadToMql, benchmark: benchmark.lead_mql },
+                { name: 'MQL → SQL', rate: rates.mqlToSql, benchmark: benchmark.mql_sql },
+                { name: 'SQL → Oportunidad', rate: rates.sqlToOpp, benchmark: benchmark.sql_opp },
+                { name: 'Opp → Venta', rate: rates.oppToSale, benchmark: benchmark.sql_closed }
+            ];
+
+            benchmarkContainer.innerHTML = `
+                <table class="w-full">
+                    <thead class="bg-light"><tr><th>Etapa</th><th>Tu Tasa</th><th>Benchmark</th><th>Diferencia</th></tr></thead>
+                    <tbody>${stages.map(s => `<tr><td>${s.name}</td><td>${s.rate.toFixed(1)}%</td><td>${s.benchmark}%</td><td class="${s.rate >= s.benchmark ? 'positive' : 'negative'}">${(s.rate - s.benchmark).toFixed(1)}%</td></tr>`).join('')}</tbody>
+                </table>`;
+            
+            let criticalPointsHTML = '';
+            stages.forEach(stage => {
+                const differenceRatio = stage.benchmark > 0 ? stage.rate / stage.benchmark : 1;
+                let statusClass = 'bg-yellow-100 border-yellow-500';
+                let statusText = `<strong>En Rango: ${stage.name}.</strong> Tu tasa (${stage.rate.toFixed(1)}%) está cerca del benchmark (${stage.benchmark}%).`;
+
+                if (differenceRatio < 0.75) {
+                    statusClass = 'bg-red-100 border-red-500';
+                    statusText = `<strong>Punto Crítico: ${stage.name}.</strong> Tu tasa (${stage.rate.toFixed(1)}%) está muy por debajo del benchmark (${stage.benchmark}%).`;
+                } else if (differenceRatio > 1.25) {
+                    statusClass = 'bg-green-100 border-green-500';
+                    statusText = `<strong>Punto Fuerte: ${stage.name}.</strong> ¡Excelente! Tu tasa (${stage.rate.toFixed(1)}%) supera el benchmark (${stage.benchmark}%).`;
+                }
+                criticalPointsHTML += `<div class="p-4 rounded-md border-l-4 ${statusClass}">${statusText}</div>`;
+            });
+            criticalPointsContainer.innerHTML = `<div class="space-y-3">${criticalPointsHTML}</div>` || '<p>Tus métricas están dentro del rango esperado.</p>';
+        }
+
+        function generateRecommendations(rates) {
+            const industry = document.getElementById('industry').value;
+            const recommendationsContainer = document.getElementById('stage-recommendations');
+            
+            if (!industry) {
+                recommendationsContainer.innerHTML = '<h2 class="text-center text-gray-600">Selecciona una industria para obtener recomendaciones.</h2>';
+                return;
+            }
+
+            const getRec = (stage, rate) => recommendations[stage].find(rec => rate >= rec.range[0] && rate <= rec.range[1])?.text || "No hay recomendación disponible.";
+            const recs = [ { stage: 'Lead → MQL', rate: rates.leadToMql, text: getRec('lead_mql', rates.leadToMql) }, { stage: 'MQL → SQL', rate: rates.mqlToSql, text: getRec('mql_sql', rates.mqlToSql) }, { stage: 'SQL → Oportunidad', rate: rates.sqlToOpp, text: getRec('sql_opp', rates.sqlToOpp) }, { stage: 'Opp → Venta', rate: rates.oppToSale, text: getRec('sql_closed', rates.oppToSale) } ];
+            
+            recommendationsContainer.innerHTML = `
+                <h2>Recomendaciones para Mejorar tu Embudo</h2>
+                ${recs.map(rec => `<div class="recommendation-box"><h3>${rec.stage} (${rec.rate.toFixed(1)}%)</h3><p>${rec.text}</p></div>`).join('')}`;
+        }
+
+        // --- DATA PERSISTENCE ---
+        function saveData() {
+            const data = {
+                leads: document.getElementById('leads').value,
+                mqls: document.getElementById('mqls').value,
+                sqls: document.getElementById('sqls').value,
+                opps: document.getElementById('opps').value,
+                sales: document.getElementById('sales').value,
+                industry: document.getElementById('industry').value
+            };
+            localStorage.setItem('funnelAuditorData', JSON.stringify(data));
+            const notification = document.getElementById('saveNotification');
+            notification.classList.add('show');
+            setTimeout(() => { notification.classList.remove('show'); }, 3000);
+        }
+
+        function loadData() {
+            const savedData = localStorage.getItem('funnelAuditorData');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                document.getElementById('leads').value = data.leads;
+                document.getElementById('mqls').value = data.mqls;
+                document.getElementById('sqls').value = data.sqls;
+                document.getElementById('opps').value = data.opps;
+                document.getElementById('sales').value = data.sales;
+                document.getElementById('industry').value = data.industry;
+                calculateFunnel();
+                alert('¡Datos cargados correctamente!');
+            } else {
+                alert('No hay datos guardados previamente.');
+            }
+        }
+
+        // --- PDF GENERATION ---
+        async function generatePDF() {
+            const industry = document.getElementById('industry').value;
+            if (!industry) {
+                alert('Selecciona una industria antes de generar el reporte.');
+                return;
+            }
+            if (!parseInt(document.getElementById('leads').value)) {
+                 alert('Ingresa tus datos antes de generar el reporte.');
+                 return;
+            }
+
+            const doc = new jsPDF('p', 'mm', 'a4');
+            const industryName = document.getElementById('industry').options[document.getElementById('industry').selectedIndex].text;
+            
+            doc.setFontSize(20).setTextColor(223, 23, 131).text('Reporte de Auditoría de Embudo', 105, 20, { align: 'center' });
+            doc.setFontSize(14).setTextColor(0,0,0).text(`Industria: ${industryName}`, 105, 30, { align: 'center' });
+
+            const conversionChartImg = await html2canvas(document.getElementById('conversionChart')).then(c => c.toDataURL('image/png'));
+            const stageChartImg = await html2canvas(document.getElementById('stageChart')).then(c => c.toDataURL('image/png'));
+            doc.addImage(conversionChartImg, 'PNG', 15, 40, 90, 70);
+            doc.addImage(stageChartImg, 'PNG', 105, 40, 90, 70);
+            
+            const benchmark = industryBenchmarks[industry];
+            const leads = parseInt(document.getElementById('leads').value) || 0;
+            const mqls = parseInt(document.getElementById('mqls').value) || 0;
+            const sqls = parseInt(document.getElementById('sqls').value) || 0;
+            const opps = parseInt(document.getElementById('opps').value) || 0;
+            const sales = parseInt(document.getElementById('sales').value) || 0;
+            const rates = { leadToMql: leads > 0 ? (mqls / leads) * 100 : 0, mqlToSql: mqls > 0 ? (sqls / mqls) * 100 : 0, sqlToOpp: sqls > 0 ? (opps / sqls) * 100 : 0, oppToSale: opps > 0 ? (sales / opps) * 100 : 0 };
+            
+            doc.autoTable({
+                startY: 120,
+                head: [['Etapa', 'Tu Tasa', 'Benchmark', 'Diferencia']],
+                body: [
+                    ['Lead → MQL', `${rates.leadToMql.toFixed(1)}%`, `${benchmark.lead_mql}%`, `${(rates.leadToMql - benchmark.lead_mql).toFixed(1)}%`],
+                    ['MQL → SQL', `${rates.mqlToSql.toFixed(1)}%`, `${benchmark.mql_sql}%`, `${(rates.mqlToSql - benchmark.mql_sql).toFixed(1)}%`],
+                    ['SQL → Opp', `${rates.sqlToOpp.toFixed(1)}%`, `${benchmark.sql_opp}%`, `${(rates.sqlToOpp - benchmark.sql_opp).toFixed(1)}%`],
+                    ['Opp → Venta', `${rates.oppToSale.toFixed(1)}%`, `${benchmark.sql_closed}%`, `${(rates.oppToSale - benchmark.sql_closed).toFixed(1)}%`]
+                ],
+                theme: 'grid', headStyles: { fillColor: [140, 49, 143] },
+                didDrawCell: data => {
+                    if (data.column.index === 3 && data.cell.section === 'body') {
+                        data.cell.styles.textColor = parseFloat(data.cell.text) < 0 ? [220, 53, 69] : [40, 167, 69];
+                    }
+                }
+            });
+            
+            doc.addPage().setFontSize(16).setTextColor(223, 23, 131).text('Recomendaciones Personalizadas', 15, 20);
+            let currentY = 30;
+            const getRec = (stage, rate) => recommendations[stage].find(rec => rate >= rec.range[0] && rate <= rec.range[1])?.text || "";
+            const recs = [ { title: `Lead → MQL (${rates.leadToMql.toFixed(1)}%)`, text: getRec('lead_mql', rates.leadToMql) }, { title: `MQL → SQL (${rates.mqlToSql.toFixed(1)}%)`, text: getRec('mql_sql', rates.mqlToSql) }, { title: `SQL → Oportunidad (${rates.sqlToOpp.toFixed(1)}%)`, text: getRec('sql_opp', rates.sqlToOpp) }, { title: `Opp → Venta (${rates.oppToSale.toFixed(1)}%)`, text: getRec('sql_closed', rates.oppToSale) } ];
+            
+            recs.forEach(rec => {
+                doc.setFontSize(12).setTextColor(0,0,0).setFont(undefined, 'bold').text(rec.title, 15, currentY);
+                currentY += 6;
+                doc.setFontSize(10).setTextColor(50, 50, 50).setFont(undefined, 'normal');
+                const splitText = doc.splitTextToSize(rec.text, 180);
+                doc.text(splitText, 15, currentY);
+                currentY += (splitText.length * 5) + 8;
+            });
+
+            doc.save(`Reporte_Embudo_${industryName.replace(/\s/g, '_')}.pdf`);
+        }
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+            
+            // Populate industry dropdown
+            const industrySelect = document.getElementById('industry');
+            Object.entries(industries).forEach(([key, name]) => {
+                const option = document.createElement('option');
+                option.value = key;
+                option.textContent = name;
+                industrySelect.appendChild(option);
+            });
+            
+            // Populate definitions and benchmarks tables
+            const definitionsBody = document.querySelector('#definitions-table tbody');
+            definitions.forEach(def => {
+                definitionsBody.innerHTML += `<tr><td class="font-bold">${def.stage}</td><td>${def.text}</td></tr>`;
+            });
+
+            const benchmarksBody = document.querySelector('#benchmarks-table tbody');
+            Object.entries(industryBenchmarks).forEach(([key, benchmark]) => {
+                benchmarksBody.innerHTML += `<tr><td class="font-medium">${industries[key]}</td><td>${benchmark.lead_mql}%</td><td>${benchmark.mql_sql}%</td><td>${benchmark.sql_opp}%</td><td>${benchmark.sql_closed}%</td></tr>`;
+            });
+            
+            // Set initial example values
+            document.getElementById('leads').value = 1500;
+            document.getElementById('mqls').value = 300;
+            document.getElementById('sqls').value = 90;
+            document.getElementById('opps').value = 36;
+            document.getElementById('sales').value = 14;
+            industrySelect.value = 'saas_b2b';
+            
+            // Initial calculation
+            calculateFunnel();
+
+            // Floating Banner/Modal Logic
+            const banner = document.getElementById('floating-banner');
+            const videoModal = document.getElementById('video-modal');
+            const videoIframe = document.getElementById('video-iframe');
+            document.getElementById('tutorial-button').addEventListener('click', () => {
+                videoIframe.src = "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1";
+                videoModal.classList.remove('hidden');
+            });
+            document.getElementById('close-banner-button').addEventListener('click', () => {
+                banner.style.display = 'none';
+            });
+            document.getElementById('close-modal-button').addEventListener('click', () => {
+                videoIframe.src = "";
+                videoModal.classList.add('hidden');
+            });
+            videoModal.addEventListener('click', (e) => {
+                if(e.target === videoModal) {
+                    videoIframe.src = "";
+                    videoModal.classList.add('hidden');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
