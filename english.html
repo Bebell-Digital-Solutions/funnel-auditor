@@ -1,1 +1,725 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Funnel Audit</title>
+    
+    <!-- External Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script> 
+    
+    <style>
+        :root {
+            --primary: #df1783;
+            --secondary: #8c318f;
+            --accent: rgba(255,255,255,0.2);
+            --light: #f8f9fa;
+            --dark: #212529;
+        }
+        
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            min-height: 100vh;
+            background-color: #f5f7fa;
+            color: var(--dark);
+        }
+        
+        h1 {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 1.5rem;
+            color: var(--dark);
+        }
+        
+        h2 {
+            font-size: 1.5rem !important;
+            font-weight: bold !important;
+            margin-bottom: 1rem !important;
+            color: var(--dark) !important;
+        }
+        
+        h3 {
+            font-size: 1.25rem;
+            font-weight: bold;
+            margin-bottom: 0.75rem;
+            color: var(--dark);
+        }
+
+        .sidebar {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 24px;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main-content {
+            padding: 30px;
+            overflow-y: auto;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            margin: 8px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .nav-item:hover {
+            background-color: var(--accent);
+        }
+        
+        .nav-item.active {
+            background-color: var(--accent);
+            font-weight: bold;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            margin-bottom: 24px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+            vertical-align: top;
+        }
+        
+        th {
+            background-color: var(--light);
+            font-weight: 600;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-sizing: border-box;
+            color: var(--dark);
+            background-color: #fbfbfb;
+            transition: all 0.2s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(223, 23, 131, 0.2);
+        }
+        
+        .chart-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background 0.3s;
+            width: 100%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn:hover {
+            background-color: var(--secondary);
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        
+        .recommendation-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid var(--primary);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .positive { color: #16a34a; font-weight: bold; }
+        .negative { color: #dc2626; font-weight: bold; }
+
+        .save-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #22c55e;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .save-notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .section-footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 1fr;
+            }
+            .sidebar {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="mb-10">
+            <div class="w-16 h-16 bg-gradient-to-br from-pink-500 to-purple-600 rounded-xl flex items-center justify-center mb-4">
+                <i data-lucide="filter" class="w-8 h-8 text-white"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-white mb-2">Funnel Auditor</h1>
+            <p class="text-white/80 text-sm leading-relaxed">Calculate your sales funnel performance.</p>
+        </div>
+        
+        <nav class="flex-grow">
+            <div id="nav-dashboard" class="nav-item active" onclick="showSection('dashboard', this)"><i data-lucide="layout-dashboard"></i><span>Start Here</span></div>
+            <div id="nav-definiciones" class="nav-item" onclick="showSection('definiciones', this)"><i data-lucide="book-open"></i><span>Definitions</span></div>
+            <div id="nav-diagnostico" class="nav-item" onclick="showSection('diagnostico', this)"><i data-lucide="search"></i><span>Diagnosis</span></div>
+            <div id="nav-benchmarks" class="nav-item" onclick="showSection('benchmarks', this)"><i data-lucide="trophy"></i><span>Benchmarks</span></div>
+            <div id="nav-recomendaciones" class="nav-item" onclick="showSection('recomendaciones', this)"><i data-lucide="rocket"></i><span>Recommendations</span></div>
+        </nav>
+
+        <div class="space-y-3 mt-auto">
+            <button class="btn" onclick="saveData()"><i data-lucide="save" class="w-5 h-5"></i> Save Data</button>
+            <button class="btn btn-secondary" onclick="loadData()"><i data-lucide="folder-open" class="w-5 h-5"></i> Load Data</button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Dashboard Section -->
+        <div id="dashboard" class="section">
+            <h1 class="text-3xl font-bold mb-6 text-gray-900">Sales Funnel Audit</h1>
+            
+            <div class="card">
+                <h2>📊 Enter Your Data</h2>
+
+                <div class="my-6">
+                    <label for="industry" class="block mb-2 font-medium text-gray-700">Select your industry:</label>
+                    <select id="industry" onchange="calculateFunnel()" class="w-full">
+                        <option value="">-- Select --</option>
+                    </select>
+                </div>
+                <table id="funnel-table" class="w-full">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="p-3 text-left font-semibold">Stage</th>
+                            <th class="p-3 text-left font-semibold"># Prospects (last 30 days)</th>
+                            <th class="p-3 text-left font-semibold">Conversion Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="p-3 font-medium">Leads</td>
+                            <td class="p-3"><input type="number" id="leads" placeholder="e.g., 1500" onchange="calculateFunnel()"></td>
+                            <td id="leads-conv" class="p-3 font-mono">-</td>
+                        </tr>
+                        <tr>
+                            <td class="p-3 font-medium">MQLs</td>
+                            <td class="p-3"><input type="number" id="mqls" placeholder="e.g., 300" onchange="calculateFunnel()"></td>
+                            <td id="mqls-conv" class="p-3 font-mono">-</td>
+                        </tr>
+                        <tr>
+                            <td class="p-3 font-medium">SQLs</td>
+                            <td class="p-3"><input type="number" id="sqls" placeholder="e.g., 90" onchange="calculateFunnel()"></td>
+                            <td id="sqls-conv" class="p-3 font-mono">-</td>
+                        </tr>
+                        <tr>
+                            <td class="p-3 font-medium">Opportunities</td>
+                            <td class="p-3"><input type="number" id="opps" placeholder="e.g., 36" onchange="calculateFunnel()"></td>
+                            <td id="opps-conv" class="p-3 font-mono">-</td>
+                        </tr>
+                        <tr>
+                            <td class="p-3 font-medium">Closed Sales</td>
+                            <td class="p-3"><input type="number" id="sales" placeholder="e.g., 14" onchange="calculateFunnel()"></td>
+                            <td id="sales-conv" class="p-3 font-mono">-</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <button class="btn mt-6" onclick="generatePDF()"><i data-lucide="file-text" class="w-5 h-5"></i> Generate PDF Report</button>
+            </div>
+
+            <div class="chart-container">
+                <div class="card"><canvas id="conversionChart"></canvas></div>
+                <div class="card"><canvas id="stageChart"></canvas></div>
+            </div>
+        </div>
+        
+        <!-- Definitions Section -->
+        <div id="definiciones" class="section" style="display:none;">
+            <h1 class="text-3xl font-bold mb-6 text-gray-900">Funnel Definitions</h1>
+            <div class="card">
+                <table id="definitions-table" class="w-full">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="p-3 text-left font-semibold">Stage</th>
+                            <th class="p-3 text-left font-semibold">Definition</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Diagnosis Section -->
+        <div id="diagnostico" class="section" style="display:none;">
+            <h1 class="text-3xl font-bold mb-6 text-gray-900">Performance Diagnosis</h1>
+            <div class="card">
+                <h2>Benchmark Comparison</h2>
+                <div id="benchmark-comparison">
+                    <p class="text-center text-gray-600">Select an industry and enter your data to see the analysis.</p>
+                </div>
+            </div>
+            <div class="card">
+                <h2>Stage Analysis</h2>
+                <div id="critical-points">
+                    <p class="text-center text-gray-600">Enter your data to see the stage analysis.</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Benchmarks Section -->
+        <div id="benchmarks" class="section" style="display:none;">
+            <h1 class="text-3xl font-bold mb-6 text-gray-900">Industry Benchmarks</h1>
+            <p class="mb-4 text-sm text-gray-600">According to reports and studies conducted in the period 2017-2024.</p>
+            <div class="card overflow-x-auto">
+                <table id="benchmarks-table" class="w-full min-w-[600px]">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="p-3 text-left font-semibold">Industry</th>
+                            <th class="p-3 text-left font-semibold">Lead → MQL</th>
+                            <th class="p-3 text-left font-semibold">MQL → SQL</th>
+                            <th class="p-3 text-left font-semibold">SQL → Opp</th>
+                            <th class="p-3 text-left font-semibold">Opp → Sale</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Recommendations Section -->
+        <div id="recomendaciones" class="section" style="display:none;">
+            <h1 class="text-3xl font-bold mb-6 text-gray-900">Personalized Recommendations</h1>
+            <div class="card">
+                <div id="stage-recommendations">
+                    <h2 class="text-center text-gray-600">Select an industry and enter your data to get personalized recommendations.</h2>
+                </div>
+            </div>
+        </div>
+
+        <footer class="section-footer">
+            <p>Powered with 💖 by <strong class="text-primary">Bebell Digital Solutions</strong></p>
+            <p>Copyright © 2025 • All rights reserved</p>
+        </footer>
+    </div>
+
+    <div class="save-notification" id="saveNotification">
+        Data saved successfully!
+    </div>
+    
+    <script>
+        // --- DATA AND CONSTANTS ---
+        const industries = { aerospace_aviation: "Aerospace & Aviation", automotive: "Automotive", saas_b2b: "B2B SaaS", real_estate: "Real Estate", biotechnology: "Biotechnology", cybersecurity: "Cybersecurity", hvac: "HVAC", ecommerce: "eCommerce", construction: "Construction", software_development: "Software Development", higher_education: "Higher Education", solar_energy: "Solar Energy", entertainment: "Entertainment", pharmaceutical: "Pharmaceutical", fintech: "Fintech", hotels_resorts: "Hotels & Resorts", engineering: "Engineering", industrial_iot: "Industrial IoT", heavy_machinery: "Heavy Machinery", manufacturing: "Manufacturing", oil_gas: "Oil & Gas", recruitment: "Recruitment", healthcare: "Healthcare", business_insurance: "Business Insurance", environmental_services: "Environmental Services", financial_services: "Financial Services", legal_services: "Legal Services", technology_services: "Technology Services", transportation_logistics: "Transportation & Logistics", addiction_treatment: "Addiction Treatment" };
+        const industryBenchmarks = {
+            addiction_treatment: { lead_mql: 23, mql_sql: 39, sql_opp: 45, sql_closed: 48 },
+            aerospace_aviation: { lead_mql: 18, mql_sql: 32, sql_opp: 49, sql_closed: 61 },
+            automotive: { lead_mql: 21, mql_sql: 42, sql_opp: 46, sql_closed: 49 },
+            saas_b2b: { lead_mql: 39, mql_sql: 38, sql_opp: 42, sql_closed: 37 },
+            biotechnology: { lead_mql: 36, mql_sql: 40, sql_opp: 48, sql_closed: 55 },
+            business_insurance: { lead_mql: 23, mql_sql: 51, sql_opp: 49, sql_closed: 52 },
+            construction: { lead_mql: 17, mql_sql: 37, sql_opp: 50, sql_closed: 54 },
+            cybersecurity: { lead_mql: 24, mql_sql: 40, sql_opp: 43, sql_closed: 46 },
+            ecommerce: { lead_mql: 23, mql_sql: 58, sql_opp: 66, sql_closed: 60 },
+            engineering: { lead_mql: 27, mql_sql: 36, sql_opp: 48, sql_closed: 52 },
+            entertainment: { lead_mql: 19, mql_sql: 41, sql_opp: 54, sql_closed: 61 },
+            environmental_services: { lead_mql: 20, mql_sql: 43, sql_opp: 58, sql_closed: 54 },
+            financial_services: { lead_mql: 29, mql_sql: 38, sql_opp: 49, sql_closed: 53 },
+            fintech: { lead_mql: 21, mql_sql: 46, sql_opp: 49, sql_closed: 58 },
+            healthcare: { lead_mql: 24, mql_sql: 38, sql_opp: 51, sql_closed: 51 },
+            heavy_machinery: { lead_mql: 29, mql_sql: 48, sql_opp: 58, sql_closed: 56 },
+            higher_education: { lead_mql: 45, mql_sql: 46, sql_opp: 61, sql_closed: 66 },
+            hotels_resorts: { lead_mql: 21, mql_sql: 47, sql_opp: 58, sql_closed: 60 },
+            hvac: { lead_mql: 42, mql_sql: 51, sql_opp: 55, sql_closed: 49 },
+            industrial_iot: { lead_mql: 22, mql_sql: 39, sql_opp: 46, sql_closed: 51 },
+            technology_services: { lead_mql: 19, mql_sql: 38, sql_opp: 41, sql_closed: 46 },
+            legal_services: { lead_mql: 32, mql_sql: 35, sql_opp: 48, sql_closed: 46 },
+            manufacturing: { lead_mql: 26, mql_sql: 41, sql_opp: 46, sql_closed: 51 },
+            oil_gas: { lead_mql: 32, mql_sql: 38, sql_opp: 42, sql_closed: 47 },
+            pharmaceutical: { lead_mql: 41, mql_sql: 56, sql_opp: 51, sql_closed: 64 },
+            real_estate: { lead_mql: 27, mql_sql: 33, sql_opp: 40, sql_closed: 53 },
+            software_development: { lead_mql: 28, mql_sql: 39, sql_opp: 60, sql_closed: 59 },
+            solar_energy: { lead_mql: 45, mql_sql: 36, sql_opp: 58, sql_closed: 61 },
+            recruitment: { lead_mql: 25, mql_sql: 32, sql_opp: 45, sql_closed: 52 },
+            transportation_logistics: { lead_mql: 31, mql_sql: 44, sql_opp: 49, sql_closed: 56 }
+        };
+        const recommendations = {
+            lead_mql: [
+                { range: [0, 10], text: "Your Lead to MQL conversion is low. Implement lead nurturing programs with automated email marketing and educational content to guide prospects." },
+                { range: [11, 20], text: "To improve MQL conversion, optimize your lead capture forms, reduce the number of fields, and add key qualification questions." },
+                { range: [21, 35], text: "You are in an acceptable range. Improve your ad and content targeting to attract higher quality leads that convert more easily to MQLs." },
+                { range: [36, 100], text: "Excellent conversion rate. Your marketing attracts high-quality prospects. Consider scaling your campaigns to increase lead volume." }
+            ],
+            mql_sql: [
+                { range: [0, 20], text: "The MQL to SQL transition is a weak point. Review your qualification process and better align criteria between marketing and sales to ensure only ready leads are passed on." },
+                { range: [21, 35], text: "Implement a lead scoring system to prioritize the most qualified MQLs and ensure a more effective handoff to sales." },
+                { range: [36, 50], text: "Good conversion. To optimize it, provide clear pricing and benefit information from the first interactions to better filter and qualify." },
+                { range: [51, 100], text: "Exceptional rate. Your qualification process is very effective. Focus on maintaining the quality and consistency of the MQLs you send to sales." }
+            ],
+            sql_opp: [
+                { range: [0, 30], text: "The SQL to Opportunity conversion is low. Train your sales team in needs discovery techniques to identify and create real sales opportunities." },
+                { range: [31, 45], text: "To create more opportunities, develop case studies, personalized demos, and testimonials that demonstrate the tangible value of your solution." },
+                { range: [46, 60], text: "Healthy rate. Optimize your sales proposals to be more persuasive, personalized, and focused on the client's problems." },
+                { range: [61, 100], text: "Your sales process is very effective at converting SQLs into opportunities. Identify and replicate the tactics that are working best." }
+            ],
+            sql_closed: [
+                { range: [0, 30], text: "Your closing rate needs improvement. Implement limited-time offers, satisfaction guarantees, or payment facilities to encourage the purchase decision." },
+                { range: [31, 50], text: "Improve your post-proposal follow-up process with strategic reminders and content that resolves the prospect's final doubts." },
+                { range: [51, 65], text: "Good closing rate. Analyze the most common objections and prepare effective responses to handle them proactively during negotiation." },
+                { range: [66, 100], text: "Excellent closing rate. Your sales team is very effective. Consider increasing the volume of opportunities to capitalize on this strength." }
+            ]
+        };
+        const definitions = [
+            { stage: "Lead", text: "A non-spam contact who has completed a form, requested a demo, downloaded a free trial, or interacted with marketing, but without clear purchase intent." },
+            { stage: "MQL (Marketing Qualified Lead)", text: "A lead who shows buying interest and financial capacity, but has not yet been validated by sales." },
+            { stage: "SQL (Sales Qualified Lead)", text: "An MQL who has received pricing information and wants to move forward in the process." },
+            { stage: "Opportunity", text: "An SQL with a formal proposal or contract under active review." },
+            { stage: "Closed Sale", text: "A client who has signed a contract but has not yet made the first payment." }
+        ];
+        
+        // --- GLOBAL VARIABLES ---
+        let conversionChart, stageChart;
+        const { jsPDF } = window.jspdf;
+
+        // --- NAVIGATION ---
+        function showSection(sectionId, navElement) {
+            document.querySelectorAll('.section').forEach(section => section.style.display = 'none');
+            document.getElementById(sectionId).style.display = 'block';
+            
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            if (navElement) {
+                navElement.classList.add('active');
+            }
+
+            if (['diagnostico', 'recomendaciones'].includes(sectionId)) {
+                calculateFunnel();
+            }
+        }
+
+        // --- CORE LOGIC ---
+        function calculateFunnel() {
+            const leads = parseInt(document.getElementById('leads').value) || 0;
+            const mqls = parseInt(document.getElementById('mqls').value) || 0;
+            const sqls = parseInt(document.getElementById('sqls').value) || 0;
+            const opps = parseInt(document.getElementById('opps').value) || 0;
+            const sales = parseInt(document.getElementById('sales').value) || 0;
+
+            const leadToMql = leads > 0 ? (mqls / leads) * 100 : 0;
+            const mqlToSql = mqls > 0 ? (sqls / mqls) * 100 : 0;
+            const sqlToOpp = sqls > 0 ? (opps / sqls) * 100 : 0;
+            const oppToSale = opps > 0 ? (sales / opps) * 100 : 0;
+            
+            document.getElementById('mqls-conv').textContent = leads > 0 ? leadToMql.toFixed(1) + '%' : '-';
+            document.getElementById('sqls-conv').textContent = mqls > 0 ? mqlToSql.toFixed(1) + '%' : '-';
+            document.getElementById('opps-conv').textContent = sqls > 0 ? sqlToOpp.toFixed(1) + '%' : '-';
+            document.getElementById('sales-conv').textContent = opps > 0 ? oppToSale.toFixed(1) + '%' : '-';
+            
+            const rates = { leadToMql, mqlToSql, sqlToOpp, oppToSale };
+            const funnelData = { leads, mqls, sqls, opps, sales };
+
+            updateCharts(funnelData, rates);
+            compareBenchmarks(rates);
+            generateRecommendations(rates);
+        }
+
+        // --- CHARTING ---
+        function updateCharts(funnelData, rates) {
+            const chartColors = ['#df1783', '#b5179e', '#7209b7', '#560bad', '#480ca8'];
+            const chartOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#333', font: { size: 12 } } } } };
+
+            // Conversion Chart
+            const convCtx = document.getElementById('conversionChart').getContext('2d');
+            const conversionData = {
+                labels: ['Lead → MQL', 'MQL → SQL', 'SQL → Opp', 'Opp → Sale'],
+                datasets: [{ label: 'Conversion Rate (%)', data: [rates.leadToMql, rates.mqlToSql, rates.sqlToOpp, rates.oppToSale], backgroundColor: chartColors, borderWidth: 0 }]
+            };
+            if(conversionChart) conversionChart.destroy();
+            conversionChart = new Chart(convCtx, { type: 'doughnut', data: conversionData, options: { ...chartOptions, plugins: { ...chartOptions.plugins, title: { display: true, text: 'Conversion Rates', color: '#333', font: { size: 16 } } } } });
+
+            // Stage Chart
+            const stageCtx = document.getElementById('stageChart').getContext('2d');
+            const stageData = {
+                labels: ['Leads', 'MQLs', 'SQLs', 'Opportunities', 'Sales'],
+                datasets: [{ label: 'Volume', data: [funnelData.leads, funnelData.mqls, funnelData.sqls, funnelData.opps, funnelData.sales], backgroundColor: chartColors, borderWidth: 0 }]
+            };
+            if(stageChart) stageChart.destroy();
+            stageChart = new Chart(stageCtx, { type: 'doughnut', data: stageData, options: { ...chartOptions, plugins: { ...chartOptions.plugins, title: { display: true, text: 'Volume by Stage', color: '#333', font: { size: 16 } } } } });
+        }
+
+        // --- DYNAMIC CONTENT ---
+        function compareBenchmarks(rates) {
+            const industry = document.getElementById('industry').value;
+            const benchmarkContainer = document.getElementById('benchmark-comparison');
+            const criticalPointsContainer = document.getElementById('critical-points');
+            
+            if (!industry) {
+                benchmarkContainer.innerHTML = '<p class="text-center text-gray-600">Select an industry to see the comparison.</p>';
+                criticalPointsContainer.innerHTML = '<p class="text-center text-gray-600">Select an industry to see the analysis.</p>';
+                return;
+            }
+
+            const benchmark = industryBenchmarks[industry];
+            const stages = [
+                { name: 'Lead → MQL', rate: rates.leadToMql, benchmark: benchmark.lead_mql },
+                { name: 'MQL → SQL', rate: rates.mqlToSql, benchmark: benchmark.mql_sql },
+                { name: 'SQL → Opportunity', rate: rates.sqlToOpp, benchmark: benchmark.sql_opp },
+                { name: 'Opp → Sale', rate: rates.oppToSale, benchmark: benchmark.sql_closed }
+            ];
+
+            benchmarkContainer.innerHTML = `
+                <table class="w-full">
+                    <thead class="bg-light"><tr><th>Stage</th><th>Your Rate</th><th>Benchmark</th><th>Difference</th></tr></thead>
+                    <tbody>${stages.map(s => `<tr><td>${s.name}</td><td>${s.rate.toFixed(1)}%</td><td>${s.benchmark}%</td><td class="${s.rate >= s.benchmark ? 'positive' : 'negative'}">${(s.rate - s.benchmark).toFixed(1)}%</td></tr>`).join('')}</tbody>
+                </table>`;
+            
+            let criticalPointsHTML = '';
+            stages.forEach(stage => {
+                const differenceRatio = stage.benchmark > 0 ? stage.rate / stage.benchmark : 1;
+                let statusClass = 'bg-yellow-100 border-yellow-500';
+                let statusText = `<strong>On Target: ${stage.name}.</strong> Your rate (${stage.rate.toFixed(1)}%) is close to the benchmark (${stage.benchmark}%).`;
+
+                if (differenceRatio < 0.75) {
+                    statusClass = 'bg-red-100 border-red-500';
+                    statusText = `<strong>Critical Point: ${stage.name}.</strong> Your rate (${stage.rate.toFixed(1)}%) is well below the benchmark (${stage.benchmark}%).`;
+                } else if (differenceRatio > 1.25) {
+                    statusClass = 'bg-green-100 border-green-500';
+                    statusText = `<strong>Strong Point: ${stage.name}.</strong> Excellent! Your rate (${stage.rate.toFixed(1)}%) exceeds the benchmark (${stage.benchmark}%).`;
+                }
+                criticalPointsHTML += `<div class="p-4 rounded-md border-l-4 ${statusClass}">${statusText}</div>`;
+            });
+            criticalPointsContainer.innerHTML = `<div class="space-y-3">${criticalPointsHTML}</div>` || '<p>Your metrics are within the expected range.</p>';
+        }
+
+        function generateRecommendations(rates) {
+            const industry = document.getElementById('industry').value;
+            const recommendationsContainer = document.getElementById('stage-recommendations');
+            
+            if (!industry) {
+                recommendationsContainer.innerHTML = '<h2 class="text-center text-gray-600">Select an industry to get recommendations.</h2>';
+                return;
+            }
+
+            const getRec = (stage, rate) => recommendations[stage].find(rec => rate >= rec.range[0] && rate <= rec.range[1])?.text || "No recommendation available.";
+            const recs = [
+                { stage: 'Lead → MQL', rate: rates.leadToMql, text: getRec('lead_mql', rates.leadToMql) },
+                { stage: 'MQL → SQL', rate: rates.mqlToSql, text: getRec('mql_sql', rates.mqlToSql) },
+                { stage: 'SQL → Opportunity', rate: rates.sqlToOpp, text: getRec('sql_opp', rates.sqlToOpp) },
+                { stage: 'Opp → Sale', rate: rates.oppToSale, text: getRec('sql_closed', rates.oppToSale) }
+            ];
+            
+            recommendationsContainer.innerHTML = `
+                <h2>Recommendations to Improve Your Funnel</h2>
+                ${recs.map(rec => `<div class="recommendation-box"><h3>${rec.stage} (${rec.rate.toFixed(1)}%)</h3><p>${rec.text}</p></div>`).join('')}`;
+        }
+
+        // --- DATA PERSISTENCE ---
+        function saveData() {
+            const data = {
+                leads: document.getElementById('leads').value,
+                mqls: document.getElementById('mqls').value,
+                sqls: document.getElementById('sqls').value,
+                opps: document.getElementById('opps').value,
+                sales: document.getElementById('sales').value,
+                industry: document.getElementById('industry').value
+            };
+            localStorage.setItem('funnelAuditorData', JSON.stringify(data));
+            const notification = document.getElementById('saveNotification');
+            notification.classList.add('show');
+            setTimeout(() => { notification.classList.remove('show'); }, 3000);
+        }
+
+        function loadData() {
+            const savedData = localStorage.getItem('funnelAuditorData');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                document.getElementById('leads').value = data.leads;
+                document.getElementById('mqls').value = data.mqls;
+                document.getElementById('sqls').value = data.sqls;
+                document.getElementById('opps').value = data.opps;
+                document.getElementById('sales').value = data.sales;
+                document.getElementById('industry').value = data.industry;
+                calculateFunnel();
+                alert('Data loaded successfully!');
+            } else {
+                alert('No previously saved data found.');
+            }
+        }
+
+        // --- PDF GENERATION ---
+        async function generatePDF() {
+            const industry = document.getElementById('industry').value;
+            if (!industry) {
+                alert('Please select an industry before generating the report.');
+                return;
+            }
+            if (!parseInt(document.getElementById('leads').value)) {
+                 alert('Please enter your data before generating the report.');
+                 return;
+            }
+
+            const doc = new jsPDF('p', 'mm', 'a4');
+            const industryName = document.getElementById('industry').options[document.getElementById('industry').selectedIndex].text;
+            
+            doc.setFontSize(20).setTextColor(223, 23, 131).text('Sales Funnel Audit Report', 105, 20, { align: 'center' });
+            doc.setFontSize(14).setTextColor(0,0,0).text(`Industry: ${industryName}`, 105, 30, { align: 'center' });
+
+            const conversionChartImg = await html2canvas(document.getElementById('conversionChart')).then(c => c.toDataURL('image/png'));
+            const stageChartImg = await html2canvas(document.getElementById('stageChart')).then(c => c.toDataURL('image/png'));
+            doc.addImage(conversionChartImg, 'PNG', 15, 40, 90, 70);
+            doc.addImage(stageChartImg, 'PNG', 105, 40, 90, 70);
+            
+            const benchmark = industryBenchmarks[industry];
+            const leads = parseInt(document.getElementById('leads').value) || 0;
+            const mqls = parseInt(document.getElementById('mqls').value) || 0;
+            const sqls = parseInt(document.getElementById('sqls').value) || 0;
+            const opps = parseInt(document.getElementById('opps').value) || 0;
+            const sales = parseInt(document.getElementById('sales').value) || 0;
+            const rates = { leadToMql: leads > 0 ? (mqls / leads) * 100 : 0, mqlToSql: mqls > 0 ? (sqls / mqls) * 100 : 0, sqlToOpp: sqls > 0 ? (opps / sqls) * 100 : 0, oppToSale: opps > 0 ? (sales / opps) * 100 : 0 };
+            
+            doc.autoTable({
+                startY: 120,
+                head: [['Stage', 'Your Rate', 'Benchmark', 'Difference']],
+                body: [
+                    ['Lead → MQL', `${rates.leadToMql.toFixed(1)}%`, `${benchmark.lead_mql}%`, `${(rates.leadToMql - benchmark.lead_mql).toFixed(1)}%`],
+                    ['MQL → SQL', `${rates.mqlToSql.toFixed(1)}%`, `${benchmark.mql_sql}%`, `${(rates.mqlToSql - benchmark.mql_sql).toFixed(1)}%`],
+                    ['SQL → Opp', `${rates.sqlToOpp.toFixed(1)}%`, `${benchmark.sql_opp}%`, `${(rates.sqlToOpp - benchmark.sql_opp).toFixed(1)}%`],
+                    ['Opp → Sale', `${rates.oppToSale.toFixed(1)}%`, `${benchmark.sql_closed}%`, `${(rates.oppToSale - benchmark.sql_closed).toFixed(1)}%`]
+                ],
+                theme: 'grid', headStyles: { fillColor: [140, 49, 143] },
+                didDrawCell: data => {
+                    if (data.column.index === 3 && data.cell.section === 'body') {
+                        data.cell.styles.textColor = parseFloat(data.cell.text) < 0 ? [220, 53, 69] : [40, 167, 69];
+                    }
+                }
+            });
+            
+            doc.addPage().setFontSize(16).setTextColor(223, 23, 131).text('Personalized Recommendations', 15, 20);
+            let currentY = 30;
+            const getRec = (stage, rate) => recommendations[stage].find(rec => rate >= rec.range[0] && rate <= rec.range[1])?.text || "";
+            const recs = [ { title: `Lead → MQL (${rates.leadToMql.toFixed(1)}%)`, text: getRec('lead_mql', rates.leadToMql) }, { title: `MQL → SQL (${rates.mqlToSql.toFixed(1)}%)`, text: getRec('mql_sql', rates.mqlToSql) }, { title: `SQL → Opportunity (${rates.sqlToOpp.toFixed(1)}%)`, text: getRec('sql_opp', rates.sqlToOpp) }, { title: `Opp → Sale (${rates.oppToSale.toFixed(1)}%)`, text: getRec('sql_closed', rates.oppToSale) } ];
+            
+            recs.forEach(rec => {
+                doc.setFontSize(12).setTextColor(0,0,0).setFont(undefined, 'bold').text(rec.title, 15, currentY);
+                currentY += 6;
+                doc.setFontSize(10).setTextColor(50, 50, 50).setFont(undefined, 'normal');
+                const splitText = doc.splitTextToSize(rec.text, 180);
+                doc.text(splitText, 15, currentY);
+                currentY += (splitText.length * 5) + 8;
+            });
+
+            doc.save(`Funnel_Report_${industryName.replace(/\s/g, '_')}.pdf`);
+        }
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+            
+            // Populate industry dropdown
+            const industrySelect = document.getElementById('industry');
+            const sortedIndustries = Object.entries(industries).sort(([,a],[,b]) => a.localeCompare(b));
+
+            sortedIndustries.forEach(([key, name]) => {
+                const option = document.createElement('option');
+                option.value = key;
+                option.textContent = name;
+                industrySelect.appendChild(option);
+            });
+            
+            // Populate definitions and benchmarks tables
+            const definitionsBody = document.querySelector('#definitions-table tbody');
+            definitions.forEach(def => {
+                definitionsBody.innerHTML += `<tr><td class="font-bold">${def.stage}</td><td>${def.text}</td></tr>`;
+            });
+
+            const benchmarksBody = document.querySelector('#benchmarks-table tbody');
+            sortedIndustries.forEach(([key, name]) => {
+                 if (industryBenchmarks[key]) {
+                    const benchmark = industryBenchmarks[key];
+                    benchmarksBody.innerHTML += `<tr><td class="font-medium">${name}</td><td>${benchmark.lead_mql}%</td><td>${benchmark.mql_sql}%</td><td>${benchmark.sql_opp}%</td><td>${benchmark.sql_closed}%</td></tr>`;
+                }
+            });
+            
+            // Set initial example values
+            document.getElementById('leads').value = 1500;
+            document.getElementById('mqls').value = 300;
+            document.getElementById('sqls').value = 90;
+            document.getElementById('opps').value = 36;
+            document.getElementById('sales').value = 14;
+            industrySelect.value = 'saas_b2b';
+            
+            // Initial calculation
+            calculateFunnel();
+        });
+    </script>
+</body>
+</html>
+
+
